@@ -1,0 +1,8 @@
+node_modules/
+legacy/opencode/
+.env
+.env.*
+!.env.example
+tests/.tmp/
+.tasksystem/
+*.log

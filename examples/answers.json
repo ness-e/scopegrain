@@ -1,0 +1,14 @@
+{
+  "name": "mi-proyecto",
+  "locale": "es",
+  "hosts": ["claude", "codex", "opencode", "devin"],
+  "paths": {
+    "plans": "docs/agent/plans",
+    "tasks": "docs/agent/tasks",
+    "reports": "docs/agent/reports",
+    "research": "docs/agent/research",
+    "decisions": "docs/agent/decisions",
+    "memory": ".tasksystem/memory",
+    "state": ".tasksystem/state"
+  }
+}

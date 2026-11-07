@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "initial": "PLAN",
+  "transitions": {
+    "PLAN": ["ACT", "RESEARCH", "STALL"],
+    "ACT": ["VERIFY", "STALL"],
+    "VERIFY": ["COLLATERAL", "EVALUATE", "ACT", "STALL"],
+    "COLLATERAL": ["RESEARCH", "ACT", "EVALUATE", "STALL"],
+    "RESEARCH": ["PLAN", "ACT", "STALL"],
+    "EVALUATE": ["REVIEW", "ACT", "STALL"],
+    "REVIEW": ["ACCEPT", "ACT", "STALL"],
+    "ACCEPT": ["CLOSE", "ACT", "STALL"],
+    "CLOSE": [],
+    "STALL": ["PLAN"]
+  },
+  "actions": {
+    "PLAN": ["read", "research", "propose"],
+    "ACT": ["read", "edit", "propose"],
+    "VERIFY": ["read", "verify", "propose"],
+    "COLLATERAL": ["read", "research", "propose"],
+    "RESEARCH": ["read", "research", "propose"],
+    "EVALUATE": ["read", "evaluate"],
+    "REVIEW": ["read", "review"],
+    "ACCEPT": ["read"],
+    "CLOSE": ["read"],
+    "STALL": ["read"]
+  },
+  "acceptance": {
+    "verificationRequired": true,
+    "verificationStatuses": ["pass"],
+    "reviewVerdict": "approve",
+    "freshContextsMustDiffer": true,
+    "waiverRequiredFields": ["owner", "reference", "reason"]
+  },
+  "execution": {
+    "shell": "manual",
+    "network": "ask",
+    "gitPush": "ask",
+    "globalInterception": false
+  }
+}

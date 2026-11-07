@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TaskSystem onboarding answers",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "locale", "hosts", "paths"],
+  "properties": {
+    "name": {"type": "string", "minLength": 1},
+    "locale": {"enum": ["es", "en"]},
+    "hosts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"enum": ["claude", "codex", "opencode", "devin"]}
+    },
+    "paths": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plans", "tasks", "reports", "research", "decisions", "memory", "state"],
+      "properties": {
+        "plans": {"$ref": "#/$defs/relativePath"},
+        "tasks": {"$ref": "#/$defs/relativePath"},
+        "reports": {"$ref": "#/$defs/relativePath"},
+        "research": {"$ref": "#/$defs/relativePath"},
+        "decisions": {"$ref": "#/$defs/relativePath"},
+        "memory": {"$ref": "#/$defs/relativePath"},
+        "state": {"$ref": "#/$defs/relativePath"}
+      }
+    }
+  },
+  "$defs": {
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Project-relative path. Runtime validation additionally rejects traversal, absolute paths, reserved destinations, symlinks and overlapping artifact directories."
+    }
+  }
+}

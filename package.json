@@ -1,0 +1,21 @@
+{
+  "name": "tasksystem-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Project-neutral engineering harness for coding agents",
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED",
+  "bin": {
+    "tasksystem": "./bin/tasksystem.mjs"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.27.1",
+    "zod": "4.5.4"
+  }
+}
