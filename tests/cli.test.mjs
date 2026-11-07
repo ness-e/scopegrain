@@ -109,7 +109,7 @@ test('--yes and --force are rejected explicitly', async () => {
   try {
     for (const flag of ['--yes', '--force']) {
       const io = fakeIO({ tty: true });
-      assert.equal(await run(['init', '--project', dir, flag]), 1);
+      assert.equal(await run(['init', '--project', dir, flag], io), 1);
       assert.equal(JSON.parse(io.out.stderr[0]).error.code, 'INVALID_ARGS');
     }
   } finally { cleanup(dir); }

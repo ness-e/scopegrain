@@ -30,7 +30,7 @@ El producto separa tres responsabilidades:
 | R11 | No ejecutar codigo por descubrirlo | Scanner sin shell; comandos propuestos, nunca ejecutados |
 | R12 | Estandarizacion honesta | Una politica canonica y limites documentados |
 | R13 | Preservar el material de origen | Archivo local fuera del circuito activo, sin borrar contenido |
-| R14 | Verificacion manual por el propietario | Pruebas preparadas, comandos y estado real de ejecucion documentados |
+| R14 | Verificacion manual salvo autorizacion expresa al agente | Comandos, permiso y estado real de ejecucion documentados |
 
 ## Niveles de adaptacion
 

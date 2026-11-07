@@ -1,10 +1,12 @@
 # Informe de implementacion
 
 Alcance: `docs/implementation.md` mas las correcciones mecanicas aprobadas
-en la revision de la primera pasada. **Ninguna prueba, build, linter,
-syntax check ni comando del proyecto fue ejecutado.** Los tests existen
-bajo `tests/` pero estan UNEXECUTED; comandos exactos en
-`docs/verification.md`.
+en la revision de la primera pasada. En el commit inicial las pruebas
+quedaron sin ejecutar. Posteriormente, con autorizacion expresa, se
+ejecutaron: 73 correctas en el gate final, tras corregir un argumento
+omitido en una prueba del CLI. Smoke tests locales correctos; no se
+certificaron integraciones reales con anfitriones.
+Detalle y limites: [verificacion](verification.md).
 
 ## Movimientos mecanicos (sin cambio de contenido)
 
@@ -48,8 +50,8 @@ bajo `tests/` pero estan UNEXECUTED; comandos exactos en
 ## Correcciones de la revision aplicadas
 
 1. `--config` en fragmentos MCP ahora es el token relativo POSIX validado
-   contenido; la prueba preparada extrae args y llama `resolveContext`.
-   Su resultado sigue pendiente de ejecucion.
+   contenido; la prueba extrae args y llama `resolveContext`.
+   Esta comprobacion pasa en el entorno local registrado.
 2. Re-init: con config valida + answers iguales + fingerprint igual se
    preserva el objeto config completo y los bytes originales de
    `config.json` y `discovery.json` (formato, orden, `verification.commands`
@@ -95,8 +97,9 @@ bajo `tests/` pero estan UNEXECUTED; comandos exactos en
 
 ## Items incompletos / pendientes
 
-- Tests no ejecutados: su correccion no esta verificada; detalles como
-  soporte de symlinks en Windows estan cubiertos con skip documentado.
-- `registerTool` con `inputSchema:{}` asumido valido en SDK 1.27.1; la
-  conexion real no fue verificada.
-- `node --check` no ejecutado (prohibido); parseo revisado manualmente.
+- Las pruebas pasan en el entorno registrado; faltan Node.js 22, otros
+  sistemas operativos y casos de integracion con anfitriones reales.
+- El registro de herramientas MCP se construyo en pruebas con SDK 1.27.1;
+  la conexion real del protocolo no fue verificada.
+- No se ejecuto `node --check` por separado; los modulos cubiertos se
+  cargaron durante las pruebas. No hay un gate adicional de lint o build.

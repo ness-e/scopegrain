@@ -7,9 +7,11 @@ Nombre provisional: TaskSystem. No implica elegir marca ni licencia.
 
 Crear una base nueva, ejecutable y generica en esta carpeta. Preservar la copia
 heredada, pero no ejecutar ni convertir por sustitucion masiva sus instrucciones.
-No tocar ninguna ruta de VantaDB ni su .opencode. No ejecutar tests, builds,
-linters, scripts del proyecto, servicios ni instalaciones. Verificacion de
-ejecucion reservada al usuario. No publicar, hacer push ni crear remotos.
+No tocar ninguna ruta de VantaDB ni su .opencode. En la construccion inicial
+no se autorizaron tests, builds, linters, scripts, servicios ni instalaciones.
+Posteriormente el propietario autorizo las pruebas y comprobaciones locales;
+sus resultados estan en [verificacion](verification.md). Esto no autoriza
+red, instalaciones, publicacion, push ni creacion de remotos.
 
 ## Arquitectura decidida
 

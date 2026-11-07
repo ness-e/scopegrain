@@ -3,7 +3,9 @@
 Harness local de ingenieria para agentes de IA, independiente del proyecto
 y con puntos de entrada para Claude Code, Codex, OpenCode y Devin Local/CLI.
 
-**Estado: base inicial implementada; verificacion de ejecucion pendiente.**
+**Estado: base inicial implementada; 73 pruebas locales correctas.**
+Los workflows y roles heredados siguen pendientes de migracion, y las
+integraciones reales con anfitriones aun no estan certificadas.
 No se debe interpretar la compatibilidad documental como una certificacion
 de comportamiento equivalente entre productos.
 
@@ -127,9 +129,10 @@ Los comandos de pruebas se preparan para ejecucion manual:
 npm test
 ```
 
-No se han ejecutado pruebas ni servicios durante la construccion inicial.
-Consultar [verificacion](docs/verification.md) antes de declarar esta base
-validada. No instalar ni arrancar el servidor MCP sin revisar sus dependencias.
+Con autorizacion expresa se ejecutaron las pruebas y smoke tests locales:
+73 pruebas correctas, ninguna fallida ni omitida en la corrida final.
+Consultar [verificacion](docs/verification.md) para entorno, evidencia y
+limites. No instalar ni arrancar el servidor MCP sin revisar sus dependencias.
 
 ## Documentacion
 
@@ -138,8 +141,9 @@ validada. No instalar ni arrancar el servidor MCP sin revisar sus dependencias.
 - [Compatibilidad y fuentes oficiales](docs/compatibility.md)
 - [Seguridad y modelo de confianza](docs/security.md)
 - [Migracion y limitaciones conocidas](docs/migration.md)
+- [Destino de comandos, agentes, skills, reglas y referencias](docs/component-migration.md)
 - [Flujo de tareas y evidencias](docs/task-workflow.md)
-- [Verificacion manual](docs/verification.md)
+- [Verificacion: resultados y reproduccion](docs/verification.md)
 - [Contrato del producto](docs/product-contract.md)
 - [Contrato de implementacion](docs/implementation.md)
 - [Ejemplo de respuestas](examples/answers.json) ·

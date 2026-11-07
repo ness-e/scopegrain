@@ -1,8 +1,42 @@
-# Verificacion manual
+# Verificacion
 
-Las pruebas estan escritas pero **ninguna se ha ejecutado** durante la
-construccion de esta base. Este documento lista los comandos exactos para
-que el propietario los ejecute y reporte los resultados.
+## Ejecucion local autorizada
+
+Se ejecutaron las verificaciones con autorizacion expresa del propietario,
+sin instalaciones, red, push ni cambios al proyecto de origen.
+Entorno observado: Windows, Node.js v26.8.1 y npm 11.6.0. No se ha probado
+todavia la version minima declarada (Node.js 22) ni otros sistemas operativos.
+
+| Comprobacion | Resultado observado |
+| --- | --- |
+| Primera corrida `npm test` | Exit 1: 72 pass, 1 fail, 0 skipped |
+| Causa del fallo | La prueba de rechazo de flags omitio pasar `io` a `run`; no se cambiaron los controles del CLI |
+| `node --test tests/cli.test.mjs` despues de corregir la llamada | Exit 0: 9 pass, 0 fail |
+| Gate final `npm test` | Exit 0: 73 pass, 0 fail, 0 skipped |
+| `--help` e `inspect --project .` | Exit 0; inspect informa gestor no confirmado sin asumir npm |
+| `init --answers` sobre fixture vacio | Dry-run, sin escrituras del inicializador |
+| `init --answers --apply` | Exit 0; 13 archivos nuevos |
+| `doctor` del fixture | Exit 0, status ready, sin warnings |
+| Repetir init con las mismas respuestas | Exit 0; created 0 |
+| Crear, listar, consultar y transicionar tarea | Exit 0; PLAN revision 0 pasa a ACT revision 1 |
+| Transicionar con revision antigua | Exit 1 esperado: REVISION_MISMATCH |
+
+Evidencia local conservada en `tests/.tmp/verification/`: baseline
+`npm-test.tap.log`, correccion `cli-tests-fixed.log`, gate
+`npm-test-final.log` y logs `smoke-*.log`. El fixture se conserva en
+`tests/.tmp/smoke-proyecto/`. Ambos destinos estan ignorados por Git:
+la evidencia local no acompana automaticamente a un clon.
+
+Las pruebas MCP construyen el servidor y comprueban handlers, sin conectar
+un transporte. No se arrancaron servicios persistentes ni se validaron
+sesiones reales de Claude, Codex, OpenCode o Devin. Estos resultados no
+certifican workflows o skills todavia archivados.
+
+## Reproduccion
+
+Los comandos siguientes permiten repetir las comprobaciones manualmente
+o autorizar su ejecucion por un agente; la autorizacion no se infiere de
+la mera presencia de esta guia.
 
 ## Requisito
 

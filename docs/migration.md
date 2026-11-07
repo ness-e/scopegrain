@@ -27,8 +27,9 @@ El puntero `.git` original apuntaba a un gitdir externo
 
 ## Limitaciones conocidas
 
-- Las pruebas estan escritas pero **no ejecutadas** en esta entrega; ver
-  `docs/verification.md`.
+- El nucleo supera las 73 pruebas locales en Windows/Node 26.8.1;
+  no equivale a certificar todas las plataformas ni anfitriones. Ver
+  [verificacion](verification.md).
 - El descubrimiento cubre ocho stacks por manifiesto; herramientas sin
   manifiesto reconocido quedan desconocidas.
 - Solo `package.json` genera comandos propuestos (test/lint/check/
