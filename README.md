@@ -3,9 +3,11 @@
 Harness local de ingenieria para agentes de IA, independiente del proyecto
 y con puntos de entrada para Claude Code, Codex, OpenCode y Devin Local/CLI.
 
-**Estado: base inicial implementada; 73 pruebas locales correctas.**
-Los workflows y roles heredados siguen pendientes de migracion, y las
-integraciones reales con anfitriones aun no estan certificadas.
+**Estado: nucleo portable, catalogo y continuidad verificados localmente.**
+Hay trece procedimientos de comando, once roles neutrales, cuarenta
+skills de ingenieria, dieciocho reglas y cinco perfiles optativos.
+El estado exacto de pruebas se registra en [verificacion](docs/verification.md);
+las integraciones reales con anfitriones aun no estan certificadas.
 No se debe interpretar la compatibilidad documental como una certificacion
 de comportamiento equivalente entre productos.
 
@@ -31,7 +33,9 @@ No se ha comprobado disponibilidad de marcas, dominios ni paquetes.
 ## Principios
 
 - Investigar antes de configurar; distinguir evidencias de inferencias.
-- Preguntar donde guardar cada categoria de artefactos.
+- Guardar los artefactos operativos por defecto dentro de `.tasksystem/`
+  en cada proyecto, nunca dispersos en su documentacion.
+- Preguntar que categorias versionar antes de generar reglas de exclusion.
 - Mostrar el plan de archivos antes de escribir.
 - No sobrescribir instrucciones, configuraciones ni trabajo existentes.
 - No ejecutar scripts descubiertos ni instalar dependencias automaticamente.
@@ -54,7 +58,8 @@ node .\bin\tasksystem.mjs doctor --project "C:\ruta\mi-proyecto"
 ```
 
 `inspect` es de solo lectura. `init` pregunta por identidad, idioma,
-anfitriones y rutas, presenta una previsualizacion y solicita confirmacion.
+anfitriones, rutas y versionado por categoria, presenta una previsualizacion
+y solicita confirmacion.
 No ejecuta los comandos que encuentre en el proyecto.
 
 Para automatizar la configuracion, se admite un archivo de respuestas:
@@ -75,10 +80,11 @@ Las rutas de artefactos deben permanecer dentro del proyecto en esta version.
 
 1. Inspeccionar manifiestos e instrucciones con limites de lectura.
 2. Reconocer stacks y proponer verificaciones con su archivo de origen.
-3. Preguntar por rutas de planes, tareas, informes, investigaciones,
-   decisiones, memoria y estado operativo.
+3. Confirmar rutas en el espacio del harness para planes, tareas, informes,
+   reviews, investigaciones, decisiones, memoria y estado operativo.
 4. Seleccionar los agentes anfitriones; no asumir que estan instalados.
-5. Revisar todos los archivos propuestos y sus posibles conflictos.
+5. Elegir categorias que se versionan; revisar archivos, exclusiones Git
+   propuestas y posibles conflictos, sin alterar el `.gitignore` de raiz.
 6. Confirmar y crear la configuracion y los puntos de entrada.
 7. Abrir una sesion del agente y confirmar que cargo las instrucciones.
 8. Aprobar y ejecutar manualmente las verificaciones apropiadas.
@@ -95,13 +101,44 @@ src/core/             Configuracion, rutas y estado de tareas
 src/discovery/        Inspeccion local sin ejecutar codigo del proyecto
 src/adapters/         Renderizado de integraciones por anfitrion
 src/mcp/              Herramientas MCP de consulta, opcionales
-policy/               Politica y transiciones canonicas
+catalog/              Recursos activos y procedencia heredada con hashes
+commands/             Los trece procedimientos portables
+agents/               Once responsabilidades neutrales
+rules/                Obligaciones generales y especificas optativas
+references/           Guias de consulta, no politicas implicitas
+profiles/             Core, web, Rust, Python y bases de datos
+policy/               Transiciones, limites, defaults y proyeccion nativa
 templates/            Instrucciones portables y contratos
 skills/               Procedimientos genericos seleccionados
 docs/                 Arquitectura, incorporacion, seguridad y migracion
 tests/                Pruebas del nuevo nucleo, no del archivo heredado
 legacy/               Procedencia y material original fuera del circuito activo
 ```
+
+## Comandos y continuidad
+
+```powershell
+node .\bin\tasksystem.mjs catalog list command
+node .\bin\tasksystem.mjs catalog legacy skill
+node .\bin\tasksystem.mjs pipeline --project "C:\ruta\mi-proyecto" --mode plan
+node .\bin\tasksystem.mjs plan create --project "C:\ruta\mi-proyecto" --input plan.json
+node .\bin\tasksystem.mjs plan next entrega --project "C:\ruta\mi-proyecto"
+```
+
+Los aliases `pipeline`, `spec`, `backlog`, `status`, `audit`, `harness`,
+`research`, `ship`, `rollback`, `code-simplify`, `codeGraph`, `cleanCA` y
+`webperf` entregan un paquete de procedimiento y contexto. No ejecutan una
+LLM ni scripts: el anfitrion interpreta el trabajo autorizado.
+
+`plan` persiste un DAG de tareas; `artifact` guarda specs, informes, reviews,
+investigacion, decisiones, lecciones y handoffs; `session` registra
+operaciones con un presupuesto explicito y recupera contexto real.
+Salvo las operaciones historicas de tarea, las nuevas escrituras requieren
+`--apply`; sin el flag se validan y previsualizan sin escribir.
+
+La [guia de workflows](docs/workflows.md) detalla formatos y limites.
+El [mapa de migracion](docs/component-migration.md) distingue recursos
+activos, reemplazos nuevos y material original todavia no aprobado.
 
 ## Compatibilidad y limites
 
@@ -112,12 +149,15 @@ legacy/               Procedencia y material original fuera del circuito activo
 - Devin Cloud no se considera equivalente a Local/CLI.
 - La configuracion MCP se entrega como propuesta para revision; no se
   mezcla automaticamente con configuraciones existentes.
-- No se instalan hooks, permisos nativos ni perfiles de subagentes.
+- Se generan puentes nativos revisables, no se instalan hooks ni se activan
+  perfiles/permisos automaticamente. Ver [formatos nativos](docs/native-hosts.md).
 - El estado se controla para las operaciones que pasan por TaskSystem;
   no se interceptan todas las herramientas nativas del anfitrion.
 - Las evidencias y revisiones aportadas por el usuario/agente son
   declaraciones registradas, no pruebas de identidad criptografica.
 - El servidor MCP no ejecuta shell ni modifica las tareas.
+- Los presupuestos cuentan operaciones registradas, no todas las llamadas
+  del anfitrion, tokens ni gasto monetario.
 - No se incluye una licencia de redistribucion del material heredado.
   El paquete permanece privado hasta resolver procedencia y licencias.
 
@@ -129,8 +169,11 @@ Los comandos de pruebas se preparan para ejecucion manual:
 npm test
 ```
 
-Con autorizacion expresa se ejecutaron las pruebas y smoke tests locales:
-73 pruebas correctas, ninguna fallida ni omitida en la corrida final.
+Con autorizacion expresa se ejecutaron las pruebas y smoke tests de la
+primera base: 73 pruebas correctas, ninguna fallida ni omitida.
+La ampliacion supera 145 pruebas y 41 comprobaciones end-to-end, incluido
+MCP por stdio. No confundir esos resultados con certificacion dentro de
+los cuatro anfitriones ni con auditoria de las skills originales.
 Consultar [verificacion](docs/verification.md) para entorno, evidencia y
 limites. No instalar ni arrancar el servidor MCP sin revisar sus dependencias.
 

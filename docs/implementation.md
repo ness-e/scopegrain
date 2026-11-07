@@ -3,6 +3,13 @@
 Estado: aprobado como base de trabajo por la solicitud de crear el proyecto.
 Nombre provisional: TaskSystem. No implica elegir marca ni licencia.
 
+Este contrato documenta el nucleo inicial y sus invariantes. Las extensiones
+vigentes se especifican en [workflows](workflows.md),
+[integraciones nativas](native-hosts.md) y
+[mapa de migracion](component-migration.md). Los requisitos adicionales
+incluyen catalogo canonico, planes DAG, artefactos, sesiones con presupuesto
+registrado, workspace `.tasksystem/` y versionado preguntado por categoria.
+
 ## Limites de esta entrega
 
 Crear una base nueva, ejecutable y generica en esta carpeta. Preservar la copia
@@ -11,7 +18,9 @@ No tocar ninguna ruta de VantaDB ni su .opencode. En la construccion inicial
 no se autorizaron tests, builds, linters, scripts, servicios ni instalaciones.
 Posteriormente el propietario autorizo las pruebas y comprobaciones locales;
 sus resultados estan en [verificacion](verification.md). Esto no autoriza
-red, instalaciones, publicacion, push ni creacion de remotos.
+instalaciones, publicacion, push ni creacion de remotos. Se autorizo
+separadamente consultar documentacion oficial en modo lectura para validar
+los formatos nativos; no activar integraciones externas.
 
 ## Arquitectura decidida
 
@@ -24,7 +33,8 @@ y exitCode=1, JSON de resultados a stdout. No llamar child_process.
 Separar src/core, src/discovery, src/adapters, src/mcp y bin. Toda ruta de
 proyecto viene de --project y/o una configuracion explicitamente cargada,
 nunca de ascender desde la instalacion. No depender del directorio .opencode.
-Los prompts estan en templates/ y skills/: usarlos sin inventar otros.
+Las instrucciones estan en fuentes canonicas commands/, agents/, skills/,
+rules/, references/ y templates/; no duplicarlas como literales ejecutables.
 La politica canonica es policy/workflow.json; no duplicar valores en el codigo.
 
 ## Conservacion
@@ -79,11 +89,11 @@ createConfig(projectRoot, answers, discovery) produce:
   "locale": "es",
   "hosts": ["claude", "codex", "opencode", "devin"],
   "paths": {
-    "plans": "docs/agent/plans",
-    "tasks": "docs/agent/tasks",
-    "reports": "docs/agent/reports",
-    "research": "docs/agent/research",
-    "decisions": "docs/agent/decisions",
+    "plans": ".tasksystem/plans",
+    "tasks": ".tasksystem/tasks",
+    "reports": ".tasksystem/reports",
+    "research": ".tasksystem/research",
+    "decisions": ".tasksystem/decisions",
     "memory": ".tasksystem/memory",
     "state": ".tasksystem/state"
   },
@@ -94,7 +104,10 @@ createConfig(projectRoot, answers, discovery) produce:
 
 El ejemplo son propuestas, NO rutas aceptadas implicitamente. Los prompts
 interactivos deben preguntar por TODAS las categorias y la ruta de config.
-answers admite name, locale, hosts y paths con todas las categorias.
+answers admite name, locale, hosts, paths y versioning opcional.
+Cuando versioning esta presente exige ocho booleanos: plans, tasks,
+reports, reviews, research, decisions, memory y state. Ausente equivale
+a false en todas las categorias para compatibilidad.
 locale solo es es o en; hosts conocidos, no duplicados, al menos uno.
 Validar tipos, version y claves; rechazar desconocidas en las respuestas y
 en la configuracion para no ignorar errores tipograficos.
@@ -119,7 +132,8 @@ prohibido. La contencion real sigue usando rutas reales, no solo esta clave.
 
 CLI inspect --project PATH: solo stdout JSON.
 CLI init --project PATH [--config REL] [--answers FILE] [--apply].
-Interactivo: preguntar nombre, idioma, hosts, config y siete rutas; mostrar
+Interactivo: preguntar nombre, idioma, hosts, config, siete rutas y ocho
+preferencias de versionado; mostrar
 discovery y todos los destinos, luego confirmar. No preguntar por secretos.
 Con --answers: default dry-run; --apply autoriza crear, no reemplazar.
 No --yes, --force ni escritura implicita en sesiones sin TTY.
@@ -145,7 +159,9 @@ Antes de aplicar, repetir preflight/validacion de ancestros; detectar tambien
 archivos planeados que sean ancestros de otros archivos. El seguimiento de
 propiedad empieza al abrir exclusivamente, antes de escribir, para retirar
 archivos propios parciales si falla una escritura.
-No ejecutar comandos; no modificar .gitignore ni archivos host existentes.
+No ejecutar comandos ni modificar el .gitignore de raiz o archivos host
+existentes. Se genera un ignore anidado y una propuesta externa a partir
+de las preferencias, sin comandos Git ni auto-untracking.
 
 ## Adaptadores
 

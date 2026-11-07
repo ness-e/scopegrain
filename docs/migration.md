@@ -15,21 +15,28 @@ El puntero `.git` original apuntaba a un gitdir externo
 
 ## Que se migro y que no
 
-- **No se migro:** ningun prompt, agente, comando, skill ni configuracion
-  del material heredado pasa al circuito activo por sustitucion. Solo tres
-  skills portables nuevas (`templates/skills/*`) y las plantillas de
-  `templates/` rigen el comportamiento.
+- **No se importa el archivo original:** ningun recurso original se activa
+  por copia ni por sustitucion masiva de nombres.
+- **Fuentes nuevas:** trece procedimientos, once roles neutrales, cuarenta
+  skills (tres iniciales y treinta y siete procedimientos de ingenieria),
+  dieciocho reglas, veinticuatro referencias y cinco perfiles. Son fuentes
+  canonicas nuevas, no certificaciones de equivalencia con cada original.
 - **Nucleo nuevo:** CLI, descubrimiento, config, bootstrap, adaptadores,
-  tareas, doctor y MCP son implementaciones nuevas contra el contrato de
-  `docs/implementation.md`; no son una traduccion del codigo anterior.
+  tareas, catalogo, workflows, planes, artefactos, sesiones, versionado,
+  doctor y MCP son implementaciones nuevas; no son una traduccion directa
+  del codigo anterior. Ver [workflows](workflows.md).
+- **Procedencia:** el inventario captura individualmente 268 entradas
+  de ocho tipos, hashes, indicadores y bloqueos de activacion, ademas del
+  directorio de recursos sin SKILL.md. La clasificacion de las 197 skills
+  es triage por identificador, no una auditoria semantica o de licencia.
 - **Dependencias:** solo `@modelcontextprotocol/sdk` y `zod` declaradas,
   para el servidor MCP opcional. El CLI no las usa.
 
 ## Limitaciones conocidas
 
-- El nucleo supera las 73 pruebas locales en Windows/Node 26.8.1;
-  no equivale a certificar todas las plataformas ni anfitriones. Ver
-  [verificacion](verification.md).
+- La primera base supero 73 pruebas locales; no usar ese numero como total
+  de la ampliacion. Resultados actuales y entorno en
+  [verificacion](verification.md), sin certificacion multiplataforma.
 - El descubrimiento cubre ocho stacks por manifiesto; herramientas sin
   manifiesto reconocido quedan desconocidas.
 - Solo `package.json` genera comandos propuestos (test/lint/check/
@@ -41,8 +48,9 @@ El puntero `.git` original apuntaba a un gitdir externo
   proyecto ni registro automatico.
 - No hay migracion automatica desde configuraciones del material heredado.
 - `doctor` informa estado, no repara; `legacy` nunca se auto-carga.
-- No hay presupuestos de acciones ni contabilidad de llamadas nativas;
-  `checkAction` solo informa la politica sobre el estado almacenado.
+- Hay presupuesto de operaciones registradas por sesion y comprobacion de
+  politica antes de agregarlas. No contabiliza todas las llamadas nativas,
+  tokens ni gasto, y no bloquea herramientas usadas fuera de TaskSystem.
 - Los nombres de archivos generados por el harness usan ASCII. Las rutas
   del proyecto con Unicode se conservan y se aceptan, pero su
   compatibilidad total con todos los anfitriones no esta certificada.
@@ -51,18 +59,20 @@ El puntero `.git` original apuntaba a un gitdir externo
 
 | Hallazgo previo | Tratamiento en esta base |
 | --- | --- |
-| Catalogos de skills con conteos distintos (197 archivos, manifiesto 196, indice 195) | No se publica ese catalogo como activo; las tres skills nuevas tienen fuentes explicitas |
-| C0 documentado con 15 llamadas y codigo con 40 | No se reutiliza ese presupuesto; no hay contabilidad de llamadas nativas en esta version |
-| Nombres `metasearchmcp_*` antiguos mezclados con `metasearch_*` | No se cargan listas de herramientas heredadas; solo cinco herramientas MCP propias de consulta |
+| Catalogos de skills con conteos distintos (197 archivos, manifiesto 196, indice 195) | Inventario individual congelado; fuentes activas registradas en manifest.json, no en indices manuales divergentes |
+| C0 documentado con 15 llamadas y codigo con 40 | Limite de sesion explicito y acotado; no equivale a contar llamadas nativas |
+| Nombres `metasearchmcp_*` antiguos mezclados con `metasearch_*` | No se importan listas heredadas; trece herramientas MCP propias de consulta |
 | Sandbox de PowerShell sin aislamiento real | No se integra ni se presenta como garantia de seguridad |
-| Reglas, comandos y rutas particulares de VantaDB | Se conservan localmente para migracion selectiva posterior, fuera del runtime |
+| Reglas, comandos y rutas particulares de VantaDB | Core neutral y perfiles optativos nuevos; originales bloqueados fuera del runtime |
 
 Estos defectos siguen presentes en el archivo original preservado. No se
 declara una migracion completa de sus capacidades, agentes ni skills.
 
 ## Cambios futuros previstos (fuera de esta base)
 
-- Politicas organizativas componibles y perfiles de dominio auditados.
+- Revision semantica, licencias y dependencias de las especialidades
+  originales no incorporadas; clasificar no equivale a portarlas.
+- Politicas organizativas autenticadas y perfiles de dominio auditados.
 - Instalacion supervisada de hooks nativos y ejecucion autorizada de
   verificaciones.
 - Migracion asistida de configuraciones previas.

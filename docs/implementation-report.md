@@ -1,5 +1,11 @@
 # Informe de implementacion
 
+Este documento describe la **primera base** de los commits iniciales,
+no la ampliacion posterior. Para el alcance vigente consultar
+[mapa de migracion](component-migration.md),
+[workflows](workflows.md) y [verificacion](verification.md).
+Los conteos y pendientes que siguen son historicos de esa primera base.
+
 Alcance: `docs/implementation.md` mas las correcciones mecanicas aprobadas
 en la revision de la primera pasada. En el commit inicial las pruebas
 quedaron sin ejecutar. Posteriormente, con autorizacion expresa, se

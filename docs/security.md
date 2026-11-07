@@ -1,10 +1,10 @@
 # Seguridad y modelo de confianza
 
-## Controles implementados; pendientes de verificacion
+## Controles y evidencia de verificacion
 
 Los siguientes controles estan implementados en el codigo; su
-comportamiento efectivo queda pendiente de la ejecucion de las pruebas
-descritas en `docs/verification.md`.
+alcance probado y las limitaciones se registran en
+[verificacion](verification.md). No equivalen a certificacion de seguridad.
 
 - **Sin ejecucion:** el nucleo no usa `child_process`; el scanner no ejecuta
   ni expande comandos descubiertos. Las propuestas llegan con
@@ -25,6 +25,13 @@ descritas en `docs/verification.md`.
   exclusivo `wx`; el rollback solo retira lo creado por esa operacion.
 - **Estado consistente:** lock exclusivo por tarea + CAS de revision +
   temporal exclusivo y rename. Un lock ajeno es conflicto, no se recupera.
+- **Continuidad:** planes con dependencias validadas, artefactos inmutables
+  y sesiones con CAS y limite de operaciones registradas. Estos mecanismos
+  no cuentan llamadas que el anfitrion omita registrar.
+- **Persistencia acotada:** tareas, planes, artefactos y sesiones validan
+  el tamano serializado antes de persistir y al leer, segun la politica
+  de limites. Los temporales solo se limpian tras adquirir su propiedad
+  por apertura exclusiva; un fallo EEXIST no autoriza borrar el existente.
 - **Sin secretos en artefactos:** los fragmentos MCP contienen solo rutas y
   nombres; init nunca pregunta por secretos.
 - **Sin flags de bypass:** `--yes` y `--force` se rechazan; no hay escritura
@@ -45,6 +52,8 @@ descritas en `docs/verification.md`.
   escritura.
 - **Sin coordinacion distribuida.** El lock cubre procesos que usan
   TaskSystem; otras herramientas pueden editar los archivos de tareas.
+  La comprobacion de politica y el append de una sesion no constituyen
+  una transaccion distribuida con las herramientas nativas del anfitrion.
 - **Scope y evidencia declarados.** Que un check figure como `pass` no
   prueba que se ejecuto; la confianza la aporta el proceso humano.
 - **El archivo legacy no es seguro por omission.** `legacy/opencode/` puede
@@ -55,7 +64,9 @@ descritas en `docs/verification.md`.
 
 - Revisar `integrations/*.json|toml` antes de fusionarlos en el anfitrion.
 - No commitear fragmentos machine-local sin revisar las rutas absolutas.
-- Mantener `tests/.tmp/`, `.tasksystem/` y `legacy/opencode/` fuera de
-  control de versiones (ya cubierto por `.gitignore`).
+- Mantener fixtures, sesiones, trazas y el archivo privado fuera de Git.
+  En proyectos incorporados, preguntar que categorias compartir y revisar
+  los ignores del padre antes de asumir que la seleccion esta aplicada.
+  Este repositorio conserva `.tasksystem/` ignorado para su trabajo local.
 - Tratar cualquier output de discovery como evidencia, no como autorizacion
   para ejecutar comandos.

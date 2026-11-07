@@ -30,7 +30,8 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
    ```
 
    - Interactivo: pregunta nombre, idioma, anfitriones, ruta de
-     configuracion y las siete rutas de artefactos; muestra el plan de
+     configuracion, las siete rutas de artefactos y ocho decisiones de
+     versionado (incluida la subcategoria reviews); muestra el plan de
      archivos completo y pide `Crear estos archivos? (yes/no)` (defecto:
      `no`).
    - Con `--answers`: sin `--apply` es solo vista previa (dry-run);
@@ -49,7 +50,11 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
    | `discovery.json` | Resultado completo de inspect |
    | `task-contract.md` | `templates/task-contract.md` (verbatim) |
    | `integrations/<host>-mcp.json|.toml` | `src/adapters/render.mjs` |
-   | `skills/<name>/SKILL.md` | `templates/skills/*` (verbatim) |
+   | `catalog.json` | Manifest proyectado con rutas del espacio generado |
+   | `commands/`, `agents/`, `skills/`, `rules/`, `references/`, `profiles/` | Fuentes canonicas del catalogo activo |
+   | `policy/workflow.json`, `policy/operation-limits.json` | Politicas canonicas de referencia |
+   | `.gitignore`, `integrations/gitignore-proposal.txt` | Preferencias por categoria; no alteran el ignore de raiz |
+   | `integrations/native/` | Puentes nativos y plan de activacion manual |
    | `AGENTS.md` (raiz) | `templates/entrypoint.md`, si hay host codex/opencode/devin |
    | `CLAUDE.md` (raiz) | `templates/entrypoint.md`, si hay host claude |
 
@@ -57,6 +62,8 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
    revisar y fusionar manualmente en la configuracion del anfitrion; las
    skills portables se instalan como copias bajo el directorio de la config,
    no se registran en directorios nativos del anfitrion.
+   Los puentes nativos tambien permanecen dentro de `integrations/native/`
+   hasta su revision y activacion manual; no se copian a raices de host.
 
 4. **Verificar estado**: `doctor` valida config, rutas, archivos generados y
    vigencia del fingerprint sin ejecutar nada.
@@ -67,6 +74,18 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
 
 ## Personalizacion
 
+- Todos los artefactos operativos se proponen dentro de `.tasksystem/`:
+  planes, task files, reports/reviews, research, decisions, memory y state.
+  La documentacion destinada a usuarios del producto es un entregable
+  distinto y conserva las convenciones de ese proyecto.
+- Se pregunta por separado si versionar plans, tasks, reports, reviews,
+  research, decisions, memory y state. La propuesta conservadora es no.
+  El formato de respuestas usa ocho booleanos en `versioning`; los
+  archivos antiguos sin ese campo siguen siendo validos con valores false.
+- El `.gitignore` del espacio propio cubre categorias locales internas.
+  Las rutas custom fuera del espacio producen propuestas para aplicar
+  manualmente. Un ignore anidado no deshace un ignore del padre ni
+  retira archivos que Git ya seguia; eso requiere decision del propietario.
 - Config fuera de la ruta por defecto: `--config "ruta/relativa/config.json"`
   en `init` (pregunta interactiva o flag) y en los comandos posteriores.
 - Las rutas guardadas son siempre relativas al proyecto; nunca se almacenan
@@ -78,6 +97,9 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
 ## Re-init y cambios de manifiestos
 
 - Reejecutar `init` con la misma config y respuestas es no-op.
+- Esa propiedad supone las mismas fuentes canonicas del harness.
+  Al actualizar TaskSystem pueden aparecer conflictos de contenido
+  generado; no existe `--force` para sobrescribirlos ni migracion automatica.
 - Si los manifiestos cambiaron (fingerprint distinto), `init` se detiene con
   conflicto sobre `config.json`/`discovery.json`; `doctor` ademas reporta
   `changedDiscovery:true` para avisar antes.

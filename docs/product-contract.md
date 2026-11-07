@@ -63,13 +63,20 @@ instalaciones, escritura fuera del alcance ni relajacion de permisos.
 ## Personalizacion inicial y evolucion
 
 Disponibles como datos de configuracion: nombre, idioma, anfitriones,
-rutas y propuestas de verificacion. Las decisiones del propietario no
+rutas, versionado por categoria y propuestas de verificacion. Los
+artefactos operativos usan `.tasksystem/` por defecto; la documentacion
+del producto es un entregable separado. Las decisiones del propietario no
 deben recalcularse ni reemplazarse silenciosamente.
 
 Pendientes de una version posterior: politicas organizativas componibles,
 perfiles de dominio auditados, sincronizacion de preferencias globales,
 instalacion de hooks nativos, migracion automatica de configuraciones,
 ejecucion supervisada de verificaciones y empaquetado redistribuible.
+
+El catalogo, las propuestas nativas, planes dependientes, artefactos y
+sesiones actuales se describen en [workflows](workflows.md) y
+[mapa de migracion](component-migration.md). Son extensiones de la primera
+base, no importaciones implicitas del archivo original.
 
 No cambiar la marca, la rama Git de otro proyecto ni su sistema de
 publicacion para incorporarlo al harness.

@@ -18,12 +18,19 @@ src/core/config.mjs       Contrato de config.json, answers y colisiones
 src/core/context.mjs      Vincula project root explicito + config cargada
 src/core/policy.mjs       Carga policy/workflow.json (fuente canonica)
 src/core/tasks.mjs        Documentos de tarea, createTask, getTask, listTasks
+src/core/catalog.mjs      Catalogo activo validado y proyeccion de recursos
+src/core/workflows.mjs    Paquetes de procedimiento/contexto, sin ejecucion LLM
+src/core/plans.mjs        Planes DAG y readiness desde tareas actuales
+src/core/artifacts.mjs    Artefactos operativos inmutables por UUID
+src/core/sessions.mjs     Operaciones registradas, CAS, presupuesto y resume
+src/core/versioning.mjs   Ignore propio y propuestas externas por categoria
 src/core/evidence.mjs     Validacion de verification/review (attestations)
 src/core/transition.mjs   Transiciones CAS con lock por tarea, checkAction
 src/core/bootstrap.mjs    Plan de init, preflight, apply con rollback
 src/core/doctor.mjs       Chequeo de salud de solo lectura
 src/discovery/inspect.mjs Escaneo acotado de manifiestos
 src/adapters/render.mjs   Fragmentos de integracion por anfitrion
+src/adapters/native.mjs   Puentes nativos y plan de activacion manual
 src/mcp/server.mjs        Servidor MCP stdio de solo lectura
 ```
 
@@ -43,6 +50,13 @@ CLI task/doctor/mcp -> resolveContext -> loadConfig -> operaciones
   placeholders; despues del render se exige que no quede ningun `{{`.
 - Los comandos descubiertos son propuestas (`approved:false`), jamas
   ejecutados por el harness.
+- `catalog/manifest.json` indexa fuentes canonicas; el catalogo generado
+  usa rutas proyectadas, no referencias a templates inexistentes.
+- Los procedimientos los interpreta el anfitrion. TaskSystem no crea
+  clientes LLM ni ejecuta subagentes por tener una definicion de rol.
+- La politica de onboarding propone todos los artefactos dentro de
+  `.tasksystem/`; las ocho preferencias de versionado no autorizan
+  modificar el Git del proyecto ni publicar datos privados.
 
 ## Decisiones relevantes
 
@@ -89,6 +103,8 @@ CLI task/doctor/mcp -> resolveContext -> loadConfig -> operaciones
   del agente, exigida por las instrucciones generadas.
 - Las propuestas MCP son fragmentos machine-local; no se fusionan con la
   configuracion activa del anfitrion ni se registran automaticamente.
-- No hay equivalente nativo de permisos, hooks ni sandbox del anfitrion.
+- La proyeccion nativa usa formatos de permisos documentados por host,
+  sin instalarlos. Sus alcances no son equivalentes ni constituyen
+  aislamiento universal del harness; no se generan hooks ejecutables.
 - El estado se controla solo para operaciones que pasan por TaskSystem; no
   se interceptan herramientas nativas.

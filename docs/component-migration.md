@@ -10,31 +10,36 @@ del proyecto de origen no se modifica.
 Inventario por enumeracion local de archivos, no por los conteos antiguos
 de los manifiestos:
 
-| Componente heredado | Inventario | Activo ahora |
+| Componente heredado | Inventario capturado | Tratamiento actual |
 | --- | --- | --- |
-| `commands/` | 13 archivos Markdown | No; el CLI nuevo es otra interfaz |
-| `agents/` | 11 definiciones | No hay registro ni despacho de estos roles |
-| `skills/` | 198 carpetas directas y 197 archivos `SKILL.md` | Solo tres skills nuevas, no sustituyen el catalogo |
-| `rules/` | 14 reglas y un README | No; la politica nueva solo cubre su propio flujo |
-| `references/` | 24 archivos | No se cargan como referencias del producto nuevo |
-| `task-system/` | 82 archivos recursivos | No; solo se implemento una parte de sus conceptos |
+| `commands/` | 13 archivos Markdown | Trece procedimientos nuevos en catalogo y aliases CLI; no se ejecuta shell |
+| `agents/` | 11 definiciones | Once roles neutrales y propuestas nativas, sin despacho automatico |
+| `skills/` | 198 carpetas directas y 197 archivos `SKILL.md` | Inventario y triage individuales; cuarenta skills activas nuevas, no importacion masiva |
+| `rules/` | 14 reglas y un README | Dieciocho reglas nuevas, seleccionadas por comando/perfil |
+| `references/` | 24 archivos | Veinticuatro referencias neutrales nuevas, bajo demanda |
+| `task-system/` | 82 archivos recursivos | Nucleo nuevo con tareas, planes, artefactos y sesiones; no replica todas las herramientas |
 | `mcp/` | Un servidor de medios | No |
 | `mcp-profiles/` | Tres JSON, README y script selector | No |
 | `plugins/` | `ponytail.ts` | No |
 | `opencode-loop/` | 52 archivos recursivos | No; son estado e historico, no una biblioteca portable |
 
-Las tres skills activas son `project-onboarding`, `contract-execution` e
-`independent-review`. El CLI actual expone `inspect`, `init`, `doctor`,
-`mcp`, `task create`, `task list`, `task show`, `task transition` y
-`task check-action`. No ofrece aun `/pipeline`, `/audit` ni los demas
-comandos de trabajo heredados.
+La fuente activa es `catalog/manifest.json`: 111 recursos (13 comandos,
+11 agentes, 40 skills, 18 reglas, 24 referencias y 5 perfiles).
+Las tres skills iniciales se complementan con 37 procedimientos nuevos
+de ingenieria general. No se certifica equivalencia textual o funcional
+con cada original; se conservan los temas y los contratos neutrales.
+
+El CLI incorpora `catalog`, `workflow`, `plan`, `artifact` y `session`
+ademas de inspect/init/doctor/mcp/task. Los aliases de los trece comandos
+producen paquetes para el anfitrion, no procesos LLM autonomos.
+Ver [operaciones y formatos](workflows.md).
 
 **Conservado no significa migrado.** `legacy/opencode/` esta ignorado por
 Git mientras se revisan licencias y posibles secretos. Un clon del nuevo
 repositorio no incluira ese archivo local. Antes de distribuir el catalogo
 habra que incorporar expresamente cada pieza aprobada y su procedencia.
 
-## Organizacion objetivo: propuesta, no implementada
+## Organizacion canonica implementada
 
 ```text
 src/core/             Contratos, estado, configuracion y validaciones
@@ -48,7 +53,9 @@ references/           Material de consulta, no instrucciones siempre activas
 profiles/             Especializaciones optativas de stack, dominio y proyecto
 templates/hosts/      Formatos nativos generados desde fuentes canonicas
 policy/               Politicas que el codigo realmente valida
-docs/                 Arquitectura, contratos, estado y evidencia de migracion
+catalog/              Manifest activo e inventarios de procedencia/triage
+docs/                 Documentacion del producto, no artefactos de tareas
+.tasksystem/          Planes, task files, informes, reviews, memoria y estado
 legacy/               Copia local de procedencia, nunca fuente activa implicita
 ```
 
@@ -62,10 +69,10 @@ de cada comportamiento debe ser unica; el adaptador solo traduce el formato.
 
 ## Comandos: conservar las trece intenciones
 
-Esta tabla define el destino propuesto. Ninguna fila afirma que el comando
-ya este registrado en Claude, Codex, OpenCode o Devin.
+Esta tabla define las intenciones de los procedimientos canonicos nuevos.
+Ninguna fila afirma que ya esten activados dentro de un anfitrion.
 
-| Comando heredado | Comportamiento a conservar | Cambio necesario |
+| Comando heredado | Intencion conservada | Contrato neutral |
 | --- | --- | --- |
 | `/pipeline` | Planificar, ejecutar una tarea o recorrer un plan | Resolver rutas desde configuracion; delegar segun capacidades reales |
 | `/spec` | Especificar antes de implementar | Investigar primero y preguntar solo lo que no responde el repositorio |
@@ -82,13 +89,13 @@ ya este registrado en Claude, Codex, OpenCode o Devin.
 | `/webperf` | Rendimiento web, solo cuando procede | Perfil web optativo; diferenciar hipotesis estaticas de mediciones reales |
 
 Un comando conversacional y un comando de terminal son interfaces distintas.
-Donde el anfitrion permita registrar comandos nativos se generara esa
-integracion; donde no, la misma intencion debe poder invocarse como
-procedimiento o skill. No se promete una sintaxis slash identica en todos.
+Se generan propuestas con namespace `tasksystem-`, como comandos o skills
+segun el anfitrion. No se promete una sintaxis slash identica ni se activan
+esos archivos al inicializar. Ver [puentes nativos](native-hosts.md).
 
 ## Agentes: preservar responsabilidades, no acoplamientos
 
-| Rol heredado | Nombre neutral propuesto | Responsabilidad |
+| Rol heredado | Rol neutral registrado | Responsabilidad |
 | --- | --- | --- |
 | `vanta-lead` | `lead` | Coordinacion, decisiones humanas y entrega autorizada |
 | `vanta-arch` | `architect` | Arquitectura, interfaces y tradeoffs |
@@ -109,25 +116,32 @@ declararlo y pedir intervencion humana o una excepcion explicita.
 
 ## Skills: catalogo amplio, carga selectiva
 
-No se ha hecho una auditoria semantica individual de las 197 skills en esta
-etapa. Se propone clasificar cada una antes de activarla:
+Se capturaron las 197 skills individualmente con hashes, indicadores y
+bloqueos en `catalog/legacy-inventory.json`. El triage por identificador
+esta en `catalog/legacy-classification.json`:
 
-- **Ingenieria general:** planificacion, especificacion, implementacion
+- **Ingenieria general (37):** planificacion, especificacion, implementacion
   incremental, debugging, revision, investigacion y documentacion.
-- **Stack:** React, Next.js, Python, Rust y otras tecnologias, solo si
+- **Stack (16):** procedimientos de tecnologias concretas, solo si
   existen o fueron seleccionadas en el proyecto.
-- **Dominio:** bases de datos, indices, accesibilidad, medios o diseno,
+- **Dominio (112):** datos, accesibilidad, contenido, documentos o diseno,
   seleccionados segun la tarea, no siempre inyectados.
-- **Integracion externa:** herramientas, MCP, servicios o plugins con
+- **Integracion externa (28):** herramientas, MCP, servicios o plugins con
   dependencias y autorizaciones explicitas.
-- **Proyecto:** `vantadb`, `vantadb-mcp` y reglas especificas quedan fuera
-  del perfil generico; podran ser un perfil optativo auditado.
-- **Solapamiento o shim:** comparar variantes, preservar procedencia y no
-  borrar o fusionar solo porque los nombres se parecen.
+- **Proyecto (4):** `vantadb`, `vantadb-mcp`, `vanta-design-orchestrator`
+  y `documentation-skill`, fuera del perfil generico.
 
-Cada entrada futura necesita origen/licencia, capacidades requeridas,
-dependencias, alcance y estado de validacion. El catalogo y sus indices
-deben generarse de una sola fuente, no mantener tres conteos manuales.
+Las categorias son rutas de revision, NO auditorias de los cuerpos,
+licencias o dependencias. Los 197 originales siguen bloqueados; los
+reemplazos frescos no autorizan su redistribucion. Las 160 especialidades
+no generales no se activan de forma automatica por detectar un stack.
+Los procedimientos nuevos son utilizables sin leer el archivo privado.
+
+`catalog legacy [KIND]` consulta el inventario capturado sin servir cuerpos.
+`catalog legacy-show KIND ID` muestra el detalle y, si existe, el recurso
+actual relacionado. Captura historica y estado activo se distinguen.
+Antes de activar un original faltan revision semantica, licencia,
+dependencias, capacidades y pruebas de comportamiento.
 
 ## Rules y references
 
@@ -135,26 +149,24 @@ Las reglas mezclan principios generales con decisiones concretas. Por
 ejemplo, `api-contract.md` contiene coherencia de APIs, pero tambien rutas,
 versiones y bindings de VantaDB. No basta con quitar el prefijo del nombre.
 
-Se propone extraer reglas generales de contrato, evidencia, revisiones y
-alcance; mover restricciones de Tokio/PyO3/JS a perfiles de stack; dejar
-semantica de WAL, IQL, indices y modelo comercial en perfiles de dominio o
-proyecto. Las politicas de release y licencias se acuerdan con cada usuario,
-no se deducen solamente de que exista un manifiesto.
+Las fuentes nuevas separan reglas generales de contrato, evidencia,
+revision y alcance de especializaciones optativas. Los perfiles core,
+web, rust, python y database no imponen IQL, WAL ni un modelo comercial.
+Core siempre complementa el perfil elegido, sin asumir herramientas.
+Las politicas de release y licencias se acuerdan con el propietario.
 
-Las 24 referencias se conservaran como conocimiento de consulta, despues
-de separar checklists reutilizables de arquitectura, rutas, herramientas y
-runbooks particulares. Una referencia no adquiere autoridad de seguridad
-por ser citada.
+Las 24 referencias activas son nuevas sintesis neutrales de consulta;
+sus originales se conservan por separado. Una referencia no adquiere
+autoridad de seguridad por ser citada.
 
 ## Otros componentes que no deben desaparecer silenciosamente
 
-- **Campaign/C0:** recuperar discovery, planificacion, recuperacion y
-  continuidad de forma incremental. La maquina de estados nueva no replica
-  todas las herramientas del servidor anterior.
+- **Campaign/C0:** tareas con estado, DAG, artefactos y sesiones nuevos.
+  No se replica cada herramienta del servidor anterior.
 - **Memoria y trazas:** usar destinos aprobados y procedencia por proyecto;
   no importar decisiones o sesiones de VantaDB como memoria de otro repo.
-- **Presupuestos:** definir contabilidad y mecanismos observables antes de
-  prometer limites sobre llamadas nativas del anfitrion.
+- **Presupuestos:** limite sobre operaciones registradas en sesiones,
+  no sobre llamadas nativas, tokens, dinero o ejecuciones omitidas.
 - **MCP y perfiles:** mantener definiciones neutrales y generar propuestas
   por host; no copiar servidores globales, credenciales o rutas personales.
 - **Ponytail:** preservar sus principios si se eligen, pero el plugin
@@ -168,9 +180,11 @@ por ser citada.
 
 ## Criterio de migracion completa
 
-La etapa siguiente es portar primero un flujo vertical: especificar,
-planificar, implementar, verificar, revisar y guardar continuidad. Despues
-se incorporan roles especializados, catalogo y extensiones por lotes.
+El nucleo permite el flujo vertical especificar -> planificar -> implementar
+con el anfitrion -> verificar -> revisar -> cerrar -> recuperar contexto.
+La evidencia ejecutada y sus huecos estan en [verificacion](verification.md).
+No se declara equivalencia integral con plugins, sandbox o especialidades
+que siguen archivados, ni certificacion real en los cuatro productos.
 
 Una pieza solo cambia de pendiente a activa cuando sus referencias y
 permisos son coherentes, no impone un dominio, conserva su procedencia y

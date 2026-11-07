@@ -7,6 +7,57 @@ sin instalaciones, red, push ni cambios al proyecto de origen.
 Entorno observado: Windows, Node.js v26.8.1 y npm 11.6.0. No se ha probado
 todavia la version minima declarada (Node.js 22) ni otros sistemas operativos.
 
+## Gate de la ampliacion portable
+
+Ejecucion registrada el 2026-11-07 (UTC). Evidencia local:
+`.tasksystem/verification/final-gate/`.
+
+| Comprobacion | Resultado observado |
+| --- | --- |
+| `npm test`, suite completa | Exit 0: 145 pass, 0 fail, 0 skipped, 0 cancelled |
+| Smoke end-to-end del CLI y MCP | Exit 0: 41 comprobaciones correctas, 0 fallidas |
+| Inicializacion en seco | Plan de 385 archivos; no se crea el workspace |
+| Inicializacion aplicada, cuatro anfitriones | 385 archivos proyectados; no se activan raices nativas |
+| Doctor y reinicializacion | `ready`; despues created 0, bytes de config/discovery preservados |
+| DAG con dos tareas | Sucesora bloqueada hasta que su dependencia llega a CLOSE |
+| Implementacion y verificacion del fixture | `node --test sum.test.mjs` ejecutado realmente, exit 0 |
+| Evidencia y review | Verificacion con log real; review sintetica declarada, solo para probar el esquema |
+| CAS y presupuesto | Revision obsoleta y operacion excedida rechazadas; resume con estado y uso reales |
+| Siete tipos de artefactos | Bajo `.tasksystem/`, reviews en reports/reviews; no se crea docs/ |
+| Catalogo y proyecciones | 111 recursos y fuentes de propuestas existentes en disco |
+| Preferencias Git del fixture | Ignore anidado segun seleccion; `.gitignore` de raiz intacto |
+| MCP con transporte real stdio | 13 herramientas read-only; consultas de catalogo, workflow, plan, artefacto y sesion |
+
+Archivos de evidencia:
+
+- `npm-test-final-gate.log`: salida completa de la suite.
+- `smoke-report.json` y `smoke.log`: comprobaciones del fixture.
+- `smoke.mjs`: script de verificacion puntual, no parte del runtime.
+- `node-version.txt` y `npm-version.txt`: versiones observadas.
+- `project/.tasksystem/reports/sum-test-runner.log`: salida del test real
+  del fixture; la ejecucion fue autorizada explicitamente, no iniciada por
+  descubrir el script en el manifiesto.
+
+El smoke registra una review con identificadores sinteticos. Valida
+transiciones y dependencias, **no** demuestra revision independiente
+automatica, identidad autenticada ni delegacion real dentro de un anfitrion.
+El transporte in-memory tambien se comprueba en la suite; stdio se
+comprueba adicionalmente en el fixture.
+
+El gate de whitespace detecto terminadores/espacios finales en archivos
+editados. Se normalizaron sin cambios de comportamiento y se comprueba
+por separado; ese ajuste no se presenta como otra ejecucion de la suite.
+
+No se ejecutaron sesiones reales de Claude Code, Codex, OpenCode o Devin.
+No se certifican las 197 skills originales archivadas, plugins externos,
+aislamiento nativo, Node.js 22 ni otros sistemas operativos.
+Los logs, fixtures y reviews operativos permanecen privados e ignorados;
+no acompanan automaticamente a un clon.
+
+## Historico de la primera base
+
+La siguiente tabla corresponde a los commits iniciales, no al conteo actual.
+
 | Comprobacion | Resultado observado |
 | --- | --- |
 | Primera corrida `npm test` | Exit 1: 72 pass, 1 fail, 0 skipped |
@@ -27,10 +78,9 @@ Evidencia local conservada en `tests/.tmp/verification/`: baseline
 `tests/.tmp/smoke-proyecto/`. Ambos destinos estan ignorados por Git:
 la evidencia local no acompana automaticamente a un clon.
 
-Las pruebas MCP construyen el servidor y comprueban handlers, sin conectar
-un transporte. No se arrancaron servicios persistentes ni se validaron
-sesiones reales de Claude, Codex, OpenCode o Devin. Estos resultados no
-certifican workflows o skills todavia archivados.
+En esa primera base las pruebas MCP no conectaban un transporte.
+La ampliacion incorpora las comprobaciones in-memory y stdio indicadas
+en el gate actual.
 
 ## Reproduccion
 
@@ -70,6 +120,16 @@ node --test tests/tasks.test.mjs      # transiciones, CAS, evidencias
 node --test tests/cli.test.mjs        # superficie CLI, JSON, exit codes
 node --test tests/doctor.test.mjs     # doctor: contenido, templates, warnings
 node --test tests/mcp.test.mjs        # opcional; requiere dependencias
+node --test tests/catalog.test.mjs    # manifest, recursos y dependencias
+node --test tests/workflows.test.mjs  # paquetes, perfiles y contexto
+node --test tests/plans.test.mjs      # DAG y readiness
+node --test tests/artifacts.test.mjs  # destinos y registros tipados
+node --test tests/sessions.test.mjs   # CAS, politica y continuidad
+node --test tests/versioning.test.mjs # defaults e ignores por categoria
+node --test tests/native-adapters.test.mjs # puentes nativos propuestos
+node --test tests/cli-workflows.test.mjs # grupos y trece aliases
+node --test tests/review-corrections.test.mjs # registros y limites
+node --test tests/final-review.test.mjs # temporales, reloj y catalogo
 ```
 
 Las pruebas de symlink se omiten con mensaje si Windows no permite crear
@@ -110,7 +170,8 @@ node .\bin\tasksystem.mjs task list --project .\tests\.tmp\humo-proyecto
 
 Tambien se puede ejecutar `init` interactivo sobre el fixture (en una
 terminal real): pregunta nombre, idioma, anfitriones, ruta de config y las
-siete rutas, muestra el plan y solo escribe tras `yes` explicito.
+siete rutas y ocho preferencias de versionado; muestra el plan y solo
+escribe tras `yes` explicito.
 
 ## Humo del MCP (opcional, con dependencias instaladas)
 
