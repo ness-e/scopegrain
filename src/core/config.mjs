@@ -10,29 +10,63 @@ import {
   resolveInside,
 } from './paths.mjs';
 
+import { loadOnboardingDefaults } from './policy.mjs';
+
 export const KNOWN_HOSTS = ['claude', 'codex', 'opencode', 'devin'];
 export const LOCALES = ['es', 'en'];
 export const PATH_KEYS = [
   'plans', 'tasks', 'reports', 'research', 'decisions', 'memory', 'state',
 ];
+
+// Versioning categories: the seven artifact paths plus nested reviews.
+export const VERSIONING_KEYS = [
+  'plans', 'tasks', 'reports', 'reviews', 'research', 'decisions',
+  'memory', 'state',
+];
 export const DEFAULT_CONFIG_PATH = '.tasksystem/config.json';
 
-// Proposal defaults shown in interactive prompts. Never accepted implicitly:
-// every category is asked and stored explicitly.
-export const DEFAULT_PATH_PROPOSALS = {
-  plans: 'docs/agent/plans',
-  tasks: 'docs/agent/tasks',
-  reports: 'docs/agent/reports',
-  research: 'docs/agent/research',
-  decisions: 'docs/agent/decisions',
-  memory: '.tasksystem/memory',
-  state: '.tasksystem/state',
-};
+// Proposal defaults come verbatim from policy/onboarding-defaults.json;
+// never accepted implicitly: every category is asked and stored explicitly.
+export function defaultPathProposals() {
+  return { ...loadOnboardingDefaults().paths };
+}
+export const DEFAULT_PATH_PROPOSALS = defaultPathProposals();
 
-const ANSWER_KEYS = new Set(['name', 'locale', 'hosts', 'paths']);
+export function allFalseVersioning() {
+  const v = {};
+  for (const k of VERSIONING_KEYS) v[k] = false;
+  return v;
+}
+
+// versioning is OPTIONAL (old answers/configs). Absent -> all false.
+// When present, all eight keys are required and must be booleans.
+export function validateVersioning(value, label = 'versioning') {
+  if (value === undefined) return allFalseVersioning();
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw err('INVALID_VALUE', `${label} must be an object`);
+  }
+  const out = {};
+  for (const key of Object.keys(value)) {
+    if (!VERSIONING_KEYS.includes(key)) {
+      throw err('UNKNOWN_KEY', `${label} contains unknown key '${key}'`);
+    }
+  }
+  for (const key of VERSIONING_KEYS) {
+    if (!(key in value)) {
+      throw err('INVALID_VALUE', `${label} is missing required key '${key}'`);
+    }
+    if (typeof value[key] !== 'boolean') {
+      throw err('INVALID_VALUE', `${label}.${key} must be boolean`);
+    }
+    out[key] = value[key];
+  }
+  return out;
+}
+
+const ANSWER_KEYS = new Set(['name', 'locale', 'hosts', 'paths', 'versioning']);
 const CONFIG_KEYS = new Set([
   'schemaVersion', 'project', 'locale', 'hosts', 'paths', 'verification',
-  'discovery',
+  'discovery', 'versioning',
 ]);
 
 function rejectUnknownKeys(obj, allowed, label) {
@@ -95,6 +129,7 @@ export function validateArtifactPaths(paths) {
 export function validateAnswers(answers) {
   rejectUnknownKeys(answers, ANSWER_KEYS, 'answers');
   for (const key of ANSWER_KEYS) {
+    if (key === 'versioning') continue; // optional field
     if (!(key in answers)) {
       throw err('INVALID_ANSWERS', `answers is missing required key '${key}'`);
     }
@@ -104,6 +139,7 @@ export function validateAnswers(answers) {
     locale: validateLocale(answers.locale),
     hosts: validateHosts(answers.hosts),
     paths: validateArtifactPaths(answers.paths),
+    versioning: validateVersioning(answers.versioning, 'answers.versioning'),
   };
 }
 
@@ -119,6 +155,9 @@ export function generatedFilePaths(configRel, hosts) {
     prefix + 'instructions.md',
     prefix + 'discovery.json',
     prefix + 'task-contract.md',
+    prefix + 'catalog.json',
+    prefix + '.gitignore',
+    prefix + 'integrations/gitignore-proposal.txt',
   ];
   if (hosts.some((h) => h === 'codex' || h === 'opencode' || h === 'devin')) {
     files.push('AGENTS.md');
@@ -129,9 +168,17 @@ export function generatedFilePaths(configRel, hosts) {
   for (const host of hosts) {
     const ext = host === 'codex' ? 'toml' : 'json';
     files.push(`${prefix}integrations/${host}-mcp.${ext}`);
+    if (host === 'opencode') {
+      files.push(`${prefix}integrations/opencode-v1-mcp.json`);
+    }
   }
-  for (const skill of ['project-onboarding', 'contract-execution', 'independent-review']) {
-    files.push(`${prefix}skills/${skill}/SKILL.md`);
+  // Native adapter proposals, projected policy and catalog component
+  // trees are generated destinations for collisions.
+  files.push(`${prefix}integrations/native`);
+  files.push(`${prefix}policy`);
+  for (const dir of ['commands', 'agents', 'skills', 'rules', 'references',
+    'profiles']) {
+    files.push(`${prefix}${dir}`);
   }
   return { configDir: dir, files };
 }
@@ -160,6 +207,7 @@ export function createConfig(projectRoot, answers, discovery) {
     hosts: a.hosts,
     paths: a.paths,
     verification: { mode: 'manual', commands: [] },
+    versioning: a.versioning,
     discovery: {
       fingerprint: typeof d.fingerprint === 'string' ? d.fingerprint : '',
       stacks: Array.isArray(d.stacks) ? d.stacks : [],
@@ -198,6 +246,8 @@ export function validateConfigObject(config) {
       || !Array.isArray(config.discovery.evidence)) {
     throw err('INVALID_VALUE', 'config.discovery has invalid field types');
   }
+  config.versioning = validateVersioning(
+    config.versioning, 'config.versioning');
   return config;
 }
 
@@ -227,8 +277,10 @@ export function assertAnswersMatchConfig(answers, config) {
   const sameHosts = a.hosts.length === config.hosts.length
     && a.hosts.every((h) => config.hosts.includes(h));
   const samePaths = PATH_KEYS.every((k) => a.paths[k] === config.paths[k]);
+  const sameVersioning = VERSIONING_KEYS.every(
+    (k) => a.versioning[k] === config.versioning[k]);
   if (a.name !== config.project.name || a.locale !== config.locale
-      || !sameHosts || !samePaths) {
+      || !sameHosts || !samePaths || !sameVersioning) {
     throw err('INIT_CONFLICT',
       'existing config differs from the supplied answers; reconcile manually');
   }

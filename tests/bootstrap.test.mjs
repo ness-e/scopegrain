@@ -29,8 +29,14 @@ test('prepareInit is a pure dry-run: nothing is written', () => {
   const dir = makeTempDir('init-dry');
   try {
     const prepared = prepareInit({ projectRoot: dir, answers: VALID_ANSWERS });
-    assert.equal(prepared.files.length, GEN.length);
-    for (const rel of GEN) assert.ok(!exists(dir, rel), `${rel} must not exist`);
+    const rels = prepared.files.map((f) => f.rel);
+    for (const rel of GEN) assert.ok(rels.includes(rel), `${rel} planned`);
+    assert.ok(rels.includes('.tasksystem/catalog.json'));
+    assert.ok(rels.includes('.tasksystem/.gitignore'));
+    assert.ok(rels.includes('.tasksystem/integrations/gitignore-proposal.txt'));
+    assert.ok(rels.some((r) => r.startsWith('.tasksystem/commands/')));
+    assert.ok(rels.some((r) => r.startsWith('.tasksystem/skills/')));
+    for (const rel of rels) assert.ok(!exists(dir, rel), `${rel} must not exist`);
   } finally { cleanup(dir); }
 });
 
@@ -39,7 +45,7 @@ test('apply creates all files; re-run on empty project is a true no-op', () => {
   try {
     const first = prepareInit({ projectRoot: dir, answers: VALID_ANSWERS });
     const result = applyPlan(dir, first.files);
-    assert.equal(result.created, GEN.length);
+    assert.equal(result.created, first.files.length);
     for (const rel of GEN) assert.ok(exists(dir, rel), `${rel} must exist`);
     const config = readJson(dir, '.tasksystem/config.json');
     assert.equal(config.project.name, 'fixture-project');

@@ -15,14 +15,14 @@ import {
 } from './config.mjs';
 import { inspectProject } from '../discovery/inspect.mjs';
 import { renderAdapters } from '../adapters/render.mjs';
+import { catalogFiles } from './catalog.mjs';
+import { buildVersioningFiles } from './versioning.mjs';
+import { renderNativeAdapters } from '../adapters/native.mjs';
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const INSTALL_ROOT = path.resolve(MODULE_DIR, '..', '..');
 const TEMPLATES_DIR = path.join(INSTALL_ROOT, 'templates');
 const SERVER_PATH = path.join(INSTALL_ROOT, 'src', 'mcp', 'server.mjs');
-const PORTABLE_SKILLS = [
-  'project-onboarding', 'contract-execution', 'independent-review',
-];
 const AGENTS_HOSTS = new Set(['codex', 'opencode', 'devin']);
 
 export function templateDir(installRoot = INSTALL_ROOT) {
@@ -33,7 +33,7 @@ function readTemplate(name, templatesDir = TEMPLATES_DIR) {
   return fs.readFileSync(path.join(templatesDir, name), 'utf8');
 }
 
-function renderTemplate(text, vars) {
+export function renderTemplate(text, vars) {
   let out = text;
   for (const [k, v] of Object.entries(vars)) {
     out = out.split(`{{${k}}}`).join(v);
@@ -54,7 +54,7 @@ function planFile(projectRoot, rel, content) {
 // discoveryContent may supply preserved bytes for re-init no-ops.
 export function buildInitPlan({
   projectRoot, configRel, config, configContent, discovery, discoveryContent,
-  templatesDir = TEMPLATES_DIR,
+  templatesDir = TEMPLATES_DIR, installRoot = null,
 }) {
   const cfgRel = assertDestination(configRel || DEFAULT_CONFIG_PATH, 'configPath');
   assertNoCollisions(config.paths, cfgRel, config.hosts);
@@ -104,10 +104,43 @@ export function buildInitPlan({
   }
   files.push(planFile(projectRoot, `${prefix}task-contract.md`,
     readTemplate('task-contract.md', templatesDir)));
-  for (const name of PORTABLE_SKILLS) {
-    files.push(planFile(projectRoot, `${prefix}skills/${name}/SKILL.md`,
-      readTemplate(path.join('skills', name, 'SKILL.md'), templatesDir)));
+
+  // Canonical workflow/limits policy copied verbatim so copied references
+  // can resolve ../policy/*.json inside the projected workspace.
+  for (const p of ['workflow.json', 'operation-limits.json']) {
+    files.push(planFile(projectRoot, `${prefix}policy/${p}`,
+      readTemplate(path.join('..', 'policy', p), templatesDir)));
   }
+
+  // Catalog projection: every manifest entry (commands, agents, skills,
+  // rules, references, profiles) plus catalog.json. The three template
+  // skills arrive through the catalog mapping skills/<id>/SKILL.md.
+  for (const cf of catalogFiles({
+    installRoot: installRoot || path.dirname(templatesDir),
+  })) {
+    files.push(planFile(projectRoot, `${prefix}${cf.rel}`, cf.content));
+  }
+
+  // Versioning proposals: <configDir>/.gitignore (skipped at project root)
+  // and integrations/gitignore-proposal.txt. Root .gitignore untouched.
+  for (const vf of buildVersioningFiles({
+    configDir, paths: config.paths, versioning: config.versioning,
+  })) {
+    files.push(planFile(projectRoot, vf.rel, vf.content));
+  }
+
+  // Native host proposals: thin bridges under integrations/native plus the
+  // manual-review activation plan. Proposals only — no host-root writes.
+  const native = renderNativeAdapters(config, {
+    configRel: cfgRel,
+    installRoot: installRoot || path.dirname(templatesDir),
+  });
+  for (const nf of native.files) {
+    files.push(planFile(projectRoot, nf.rel, Buffer.from(nf.content, 'utf8')));
+  }
+  files.push(planFile(projectRoot,
+    `${prefix}integrations/native/activation-plan.json`,
+    JSON.stringify(native.activationPlan, null, 2) + '\n'));
   return { config, files, configDir, configRel: cfgRel };
 }
 

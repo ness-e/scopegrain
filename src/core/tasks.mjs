@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { err } from './errors.mjs';
-import { lstatOrNull, mkdirpSync } from './fsx.mjs';
+import { lstatOrNull, mkdirpSync, readFileLimited, writeFileExclusive } from './fsx.mjs';
 import { assertDestination, resolveInside } from './paths.mjs';
-import { knownStates, loadPolicy } from './policy.mjs';
+import { knownStates, loadLimits, loadPolicy } from './policy.mjs';
 import { validateReview, validateVerification } from './evidence.mjs';
 
 const UUID_RE =
@@ -102,9 +102,13 @@ function readTaskFile(file, id) {
   if (st.isSymbolicLink()) {
     throw err('SYMLINK_REJECTED', `task file may not be a symlink: ${id}`);
   }
+  const limited = readFileLimited(file, loadLimits().maxDocumentBytes);
+  if (limited.exceeded) {
+    throw err('TASK_MALFORMED', `task ${id} exceeds document limit`);
+  }
   let parsed;
   try {
-    parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+    parsed = JSON.parse(limited.content.toString('utf8'));
   } catch {
     throw err('TASK_MALFORMED', `task ${id} contains malformed JSON`);
   }
@@ -165,10 +169,12 @@ export function listTasks(ctx) {
   return out;
 }
 
-export function createTask(ctx, input) {
+// Pure input normalization shared by createTask and plan task creation:
+// strict keys, non-empty fields, canonical scope resolved inside the root.
+export function normalizeTaskInput(ctx, input) {
   for (const key of Object.keys(input || {})) {
     if (!CREATE_KEYS.has(key)) {
-      throw err('UNKNOWN_KEY', `createTask received unknown key '${key}'`);
+      throw err('UNKNOWN_KEY', `task input received unknown key '${key}'`);
     }
   }
   const title = requireNonEmpty(input.title, 'title');
@@ -179,36 +185,49 @@ export function createTask(ctx, input) {
     throw err('INVALID_VALUE', 'scope must be an array of relative paths');
   }
   const cleanScope = scope.map((s, i) => assertDestination(s, `scope[${i}]`));
-  // Scope entries must resolve inside the root; existing ancestors that are
-  // symlinks/junctions or non-directories are rejected here.
   for (const s of cleanScope) {
     resolveInside(ctx.projectRoot, s, 'scope');
   }
+  return { title, contract, authorContext, scope: cleanScope };
+}
 
-  const policy = loadPolicy();
-  const id = crypto.randomUUID();
-  const at = nowIso();
-  const task = {
+// Pure task record factory: no I/O, no side effects. Used by createTask
+// and by preparePlan (which must not create task side effects at plan time).
+export function buildTaskRecord(input, { id, at, initial }) {
+  return {
     schemaVersion: 1,
     id,
-    title,
-    contract,
-    authorContext,
-    scope: cleanScope,
-    state: policy.initial,
+    title: input.title,
+    contract: input.contract,
+    authorContext: input.authorContext,
+    scope: input.scope,
+    state: initial,
     revision: 0,
     verification: null,
     review: null,
     createdAt: at,
     updatedAt: at,
-    history: [{ at, event: 'created', state: policy.initial, revision: 0 }],
+    history: [{ at, event: 'created', state: initial, revision: 0 }],
   };
+}
+
+export function createTask(ctx, input) {
+  const clean = normalizeTaskInput(ctx, input);
+  const policy = loadPolicy();
+  const id = crypto.randomUUID();
+  const at = nowIso();
+  const task = buildTaskRecord(clean, { id, at, initial: policy.initial });
+  const serialized = JSON.stringify(task, null, 2) + '\n';
+  if (Buffer.byteLength(serialized, 'utf8') > loadLimits().maxDocumentBytes) {
+    throw err('DOCUMENT_TOO_LARGE',
+      `task record exceeds ${loadLimits().maxDocumentBytes} bytes`);
+  }
 
   const dir = tasksDirAbs(ctx);
   mkdirpSync(dir);
   const file = taskFilePath(ctx, id);
   try {
-    fs.writeFileSync(file, JSON.stringify(task, null, 2) + '\n', { flag: 'wx' });
+    writeFileExclusive(file, serialized); // own-file cleanup on write failure
   } catch (e) {
     if (e && e.code === 'EEXIST') {
       throw err('TASK_CONFLICT', `task id collision: ${id}`);

@@ -8,8 +8,11 @@ import { resolveInside } from './paths.mjs';
 import { PATH_KEYS, configDirOf } from './config.mjs';
 import { inspectProject } from '../discovery/inspect.mjs';
 import { buildInitPlan, INSTALL_ROOT } from './bootstrap.mjs';
+import { checkCatalog } from './catalog.mjs';
 
 const REQUIRED_TEMPLATES = [
+  'hosts/native-resource.md',
+  'hosts/native-agent.md',
   'entrypoint.md',
   'project-instructions.md',
   'task-contract.md',
@@ -48,6 +51,16 @@ export function runDoctor(ctx, opts = {}) {
   };
 
   push('config', true, `valid configuration at ${configPath}`);
+
+  // Catalog integrity surfaces explicitly (projection drift, corrupt
+  // profiles, missing resources are needs-attention, never repaired).
+  const cat = checkCatalog({ installRoot });
+  if (cat.ok) {
+    push('catalog', true, `${cat.entries} catalog entries validated`);
+  } else {
+    push('catalog', false,
+      cat.issues.map((i) => i.message).join(' | '));
+  }
 
   // Required installed templates must exist to produce/verify generated files.
   let templatesOk = true;
@@ -110,6 +123,8 @@ export function runDoctor(ctx, opts = {}) {
       configRel: configPath,
       config,
       configContent: fs.readFileSync(resolveInside(projectRoot, configPath)),
+      templatesDir,
+      installRoot,
       discovery: null,
       discoveryContent: (st => (st && st.isFile() && !st.isSymbolicLink()
         ? fs.readFileSync(discoveryAbs) : undefined))(lstatOrNull(discoveryAbs)),

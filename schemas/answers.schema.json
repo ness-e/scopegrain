@@ -26,6 +26,22 @@
         "memory": {"$ref": "#/$defs/relativePath"},
         "state": {"$ref": "#/$defs/relativePath"}
       }
+    },
+    "versioning": {
+      "type": "object",
+      "description": "Optional. All eight flags required when present; absent means all false.",
+      "required": ["plans", "tasks", "reports", "reviews", "research", "decisions", "memory", "state"],
+      "additionalProperties": false,
+      "properties": {
+        "plans": {"type": "boolean"},
+        "tasks": {"type": "boolean"},
+        "reports": {"type": "boolean"},
+        "reviews": {"type": "boolean"},
+        "research": {"type": "boolean"},
+        "decisions": {"type": "boolean"},
+        "memory": {"type": "boolean"},
+        "state": {"type": "boolean"}
+      }
     }
   },
   "$defs": {

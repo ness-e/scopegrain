@@ -3,15 +3,29 @@
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { err, toErrorPayload } from './core/errors.mjs';
-import { DEFAULT_CONFIG_PATH, DEFAULT_PATH_PROPOSALS, PATH_KEYS, loadConfig } from './core/config.mjs';
+import { DEFAULT_CONFIG_PATH, DEFAULT_PATH_PROPOSALS, PATH_KEYS, VERSIONING_KEYS, loadConfig } from './core/config.mjs';
 import { resolveContext } from './core/context.mjs';
 import { resolveProjectRoot } from './core/paths.mjs';
-import { prepareInit, applyPlan } from './core/bootstrap.mjs';
+import { prepareInit, applyPlan, preflightPlan } from './core/bootstrap.mjs';
 import { runDoctor } from './core/doctor.mjs';
 import { inspectProject } from './discovery/inspect.mjs';
 import { createTask, getTask, listTasks } from './core/tasks.mjs';
 import { transitionTask, checkAction } from './core/transition.mjs';
-import { readJsonFile } from './core/fsx.mjs';
+import { readFileLimited } from './core/fsx.mjs';
+import fs from 'node:fs';
+import { loadLimits } from './core/policy.mjs';
+import { checkCatalog, getResource, legacyGet, legacyList, loadCatalog } from './core/catalog.mjs';
+import { buildWorkflowPacket } from './core/workflows.mjs';
+import {
+  getPlan, listPlans, nextPlanTasks, preparePlan,
+} from './core/plans.mjs';
+import {
+  getArtifact, listArtifacts, prepareArtifact,
+} from './core/artifacts.mjs';
+import {
+  ensureSessionsDir, getSession, prepareSession, prepareSessionRecord,
+  recordSession, resumeSession,
+} from './core/sessions.mjs';
 
 const PATH_LABELS = {
   plans: 'Ruta de planes',
@@ -26,6 +40,7 @@ const PATH_LABELS = {
 const VALUE_FLAGS = new Set([
   '--project', '--config', '--answers', '--evidence',
   '--title', '--contract', '--author', '--scope', '--revision',
+  '--input', '--task', '--mode', '--host', '--profile', '--limit',
 ]);
 const BOOL_FLAGS = new Set(['--apply', '--help']);
 const REJECTED_FLAGS = new Set(['--yes', '--force']);
@@ -69,7 +84,73 @@ const COMMANDS = {
     flags: ['--project', '--config'], pos: 2,
     usage: 'task check-action --project PATH ID ACTION',
   },
+  'catalog list': {
+    flags: [], pos: -1,
+    usage: 'catalog list [KIND]',
+  },
+  'catalog show': {
+    flags: [], pos: 2,
+    usage: 'catalog show KIND ID',
+  },
+  'catalog check': {
+    flags: [], pos: 0,
+    usage: 'catalog check',
+  },
+  'catalog legacy': {
+    flags: [], pos: -1,
+    usage: 'catalog legacy [KIND]  (frozen provenance metadata only)',
+  },
+  'catalog legacy-show': {
+    flags: [], pos: 2,
+    usage: 'catalog legacy-show KIND ID',
+  },
+  workflow: {
+    flags: ['--project', '--config', '--mode', '--task', '--host', '--profile'],
+    pos: 1,
+    usage: 'workflow COMMAND [--mode M] [--task UUID] [--host H] [--profile ID]',
+  },
+  'plan create': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 0,
+    usage: 'plan create --project PATH --input FILE [--apply]',
+  },
+  'plan list': { flags: ['--project', '--config'], pos: 0, usage: 'plan list' },
+  'plan show': {
+    flags: ['--project', '--config'], pos: 1, usage: 'plan show KEY',
+  },
+  'plan next': {
+    flags: ['--project', '--config'], pos: 1, usage: 'plan next KEY',
+  },
+  'artifact add': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 1,
+    usage: 'artifact add KIND --input FILE [--apply]',
+  },
+  'artifact list': {
+    flags: ['--project', '--config'], pos: 1, usage: 'artifact list KIND',
+  },
+  'artifact show': {
+    flags: ['--project', '--config'], pos: 2, usage: 'artifact show KIND UUID',
+  },
+  'session create': {
+    flags: ['--project', '--config', '--task', '--limit', '--apply'], pos: 0,
+    usage: 'session create --task UUID --limit N [--apply]',
+  },
+  'session show': {
+    flags: ['--project', '--config'], pos: 1, usage: 'session show UUID',
+  },
+  'session record': {
+    flags: ['--project', '--config', '--revision', '--input', '--apply'], pos: 1,
+    usage: 'session record UUID --revision N --input FILE [--apply]',
+  },
+  'session resume': {
+    flags: ['--project', '--config'], pos: 1, usage: 'session resume UUID',
+  },
 };
+
+// Aliases are derived from canonical catalog command ids at dispatch time;
+// the flag set is fixed by the settled interface.
+const WORKFLOW_ALIAS_FLAGS = [
+  '--project', '--config', '--mode', '--task', '--host', '--profile',
+];
 
 function helpResult() {
   return {
@@ -116,9 +197,23 @@ function requireFlag(flags, name) {
   return flags[name];
 }
 
+// CLI JSON inputs are bounded by the authored document limit.
 function readInputFile(file, label) {
   const abs = path.resolve(file);
-  return readJsonFile(abs, label);
+  const st = fs.lstatSync(abs);
+  if (!st.isFile() || st.isSymbolicLink()) {
+    throw err('READ_FAILED', `${label} is not a regular file: ${abs}`);
+  }
+  const limited = readFileLimited(abs, loadLimits().maxDocumentBytes);
+  if (limited.exceeded) {
+    throw err('INPUT_TOO_LARGE',
+      `${label} exceeds ${loadLimits().maxDocumentBytes} bytes`);
+  }
+  try {
+    return JSON.parse(limited.content.toString('utf8'));
+  } catch {
+    throw err('MALFORMED_JSON', `malformed JSON in ${label}: ${abs}`);
+  }
 }
 
 function validateEvidenceArg(raw) {
@@ -151,6 +246,19 @@ async function askInteractive(io, projectRoot, configFlag, existing) {
   for (const key of PATH_KEYS) {
     answers.paths[key] = await io.ask(PATH_LABELS[key],
       existing ? existing.paths[key] : DEFAULT_PATH_PROPOSALS[key]);
+  }
+  // Optional versioning: eight yes/no questions, never guessed defaults.
+  answers.versioning = {};
+  for (const key of VERSIONING_KEYS) {
+    const def = existing ? (existing.versioning[key] ? 'yes' : 'no') : 'no';
+    let reply;
+    for (;;) {
+      reply = (await io.ask(`Versionar ${key}? (yes/no)`, def))
+        .trim().toLowerCase();
+      if (reply === 'yes' || reply === 'no') break;
+      io.stderr('responda yes o no');
+    }
+    answers.versioning[key] = reply === 'yes';
   }
   return { answers, configRel };
 }
@@ -237,7 +345,7 @@ async function cmdTask(sub, positional, flags, io) {
     if (!flags['--revision']) {
       throw err('INVALID_ARGS', '--revision N is required');
     }
-    const expectedRevision = Number(flags['--revision']);
+    const expectedRevision = decimalInt(flags['--revision'], '--revision');
     const evidence = flags['--evidence']
       ? validateEvidenceArg(readInputFile(flags['--evidence'], 'evidence file'))
       : {};
@@ -257,6 +365,173 @@ async function cmdTask(sub, positional, flags, io) {
   throw err('INVALID_ARGS', `unknown task subcommand '${sub}'`);
 }
 
+// Strict non-negative decimal parsing for CLI integer flags.
+function decimalInt(value, label) {
+  if (typeof value !== 'string' || !/^[0-9]+$/.test(value)) {
+    throw err('INVALID_ARGS', `${label} must be a non-negative decimal integer`);
+  }
+  return Number(value);
+}
+
+function cmdCatalog(sub, positional) {
+  if (sub === 'legacy') {
+    return legacyList({ kind: positional[0] }, {});
+  }
+  if (sub === 'legacy-show') {
+    return legacyGet(positional[0], positional[1], {});
+  }
+  if (sub === 'list') {
+    const catalog = loadCatalog({});
+    const kind = positional[0];
+    const entries = kind
+      ? catalog.entries.filter((e) => e.kind === kind)
+      : catalog.entries;
+    if (kind && !catalog.entries.some((e) => e.kind === kind)) {
+      throw err('CATALOG_UNKNOWN_KIND', `unknown catalog kind '${kind}'`);
+    }
+    return {
+      entries: entries.map(({ kind: k, id, description, path: p }) =>
+        ({ kind: k, id, description, path: p })),
+    };
+  }
+  if (sub === 'show') {
+    const r = getResource(positional[0], positional[1], {});
+    return {
+      kind: r.kind, id: r.id, path: r.path,
+      description: r.description,
+      content: r.content.toString('utf8'),
+    };
+  }
+  if (sub === 'check') {
+    const report = checkCatalog({});
+    if (!report.ok) {
+      throw err('CATALOG_INVALID',
+        `catalog check failed: ${report.issues.map((i) => i.message).join(' | ')}`);
+    }
+    return report;
+  }
+  throw err('INVALID_ARGS', `unknown catalog subcommand '${sub}'`);
+}
+
+function cmdWorkflow(command, flags) {
+  return buildWorkflowPacket(resolveContext({
+    project: requireFlag(flags, '--project'),
+    config: flags['--config'],
+  }), {
+    command,
+    mode: flags['--mode'],
+    taskId: flags['--task'],
+    host: flags['--host'],
+    profile: flags['--profile'],
+  });
+}
+
+function cmdPlan(sub, positional, flags) {
+  const ctx = resolveContext({
+    project: requireFlag(flags, '--project'),
+    config: flags['--config'],
+  });
+  if (sub === 'create') {
+    const input = readInputFile(requireFlag(flags, '--input'), 'plan input');
+    const prepared = preparePlan(ctx, input);
+    const planned = preflightPlan(ctx.projectRoot, prepared.files);
+    if (!flags['--apply']) {
+      return {
+        mode: 'dry-run', applied: false, plan: prepared.plan,
+        files: planned.map((f) => ({ path: f.rel, action: f.action })),
+      };
+    }
+    const result = applyPlan(ctx.projectRoot, planned);
+    return { mode: 'applied', applied: true, plan: prepared.plan, ...result };
+  }
+  if (sub === 'list') return listPlans(ctx);
+  if (sub === 'show') return getPlan(ctx, positional[0]);
+  if (sub === 'next') return { tasks: nextPlanTasks(ctx, positional[0]) };
+  throw err('INVALID_ARGS', `unknown plan subcommand '${sub}'`);
+}
+
+function cmdArtifact(sub, positional, flags) {
+  const ctx = resolveContext({
+    project: requireFlag(flags, '--project'),
+    config: flags['--config'],
+  });
+  if (sub === 'add') {
+    const input = readInputFile(requireFlag(flags, '--input'), 'artifact input');
+    const prepared = prepareArtifact(ctx, positional[0], input);
+    const planned = preflightPlan(ctx.projectRoot, [prepared.file]);
+    if (!flags['--apply']) {
+      return {
+        mode: 'dry-run', applied: false, artifact: prepared.artifact,
+        files: planned.map((f) => ({ path: f.rel, action: f.action })),
+      };
+    }
+    const result = applyPlan(ctx.projectRoot, planned);
+    return {
+      mode: 'applied', applied: true, artifact: prepared.artifact, ...result,
+    };
+  }
+  if (sub === 'list') return listArtifacts(ctx, positional[0]);
+  if (sub === 'show') return getArtifact(ctx, positional[0], positional[1]);
+  throw err('INVALID_ARGS', `unknown artifact subcommand '${sub}'`);
+}
+
+function cmdSession(sub, positional, flags) {
+  const ctx = resolveContext({
+    project: requireFlag(flags, '--project'),
+    config: flags['--config'],
+  });
+  if (sub === 'create') {
+    const prepared = prepareSession(ctx, {
+      taskId: requireFlag(flags, '--task'),
+      limit: decimalInt(requireFlag(flags, '--limit'), '--limit'),
+    });
+    const planned = preflightPlan(ctx.projectRoot, [prepared.file]);
+    if (!flags['--apply']) {
+      return {
+        mode: 'dry-run', applied: false, session: prepared.session,
+        files: planned.map((f) => ({ path: f.rel, action: f.action })),
+      };
+    }
+    ensureSessionsDir(ctx);
+    const result = applyPlan(ctx.projectRoot, planned);
+    return {
+      mode: 'applied', applied: true, session: prepared.session, ...result,
+    };
+  }
+  if (sub === 'show') return getSession(ctx, positional[0]);
+  if (sub === 'record') {
+    const input = readInputFile(requireFlag(flags, '--input'), 'record input');
+    if (input === null || typeof input !== 'object' || Array.isArray(input)) {
+      throw err('INVALID_SESSION', 'record input must be an object');
+    }
+    for (const k of Object.keys(input)) {
+      if (!['action', 'evidence', 'context'].includes(k)) {
+        throw err('UNKNOWN_KEY', `record input has unknown key '${k}'`);
+      }
+    }
+    const recordInput = {
+      id: positional[0],
+      expectedRevision: decimalInt(
+        requireFlag(flags, '--revision'), '--revision'),
+      action: input.action,
+      evidence: input.evidence,
+      context: input.context,
+    };
+    // Dry-run validates against CURRENT state exactly like apply does.
+    const prep = prepareSessionRecord(ctx, recordInput);
+    if (!flags['--apply']) {
+      return {
+        mode: 'dry-run', applied: false,
+        session: { id: prep.session.id, used: prep.session.used,
+          limit: prep.session.limit, revision: prep.session.revision },
+      };
+    }
+    return recordSession(ctx, recordInput);
+  }
+  if (sub === 'resume') return resumeSession(ctx, positional[0]);
+  throw err('INVALID_ARGS', `unknown session subcommand '${sub}'`);
+}
+
 export async function run(argv, io) {
   try {
 
@@ -265,20 +540,41 @@ export async function run(argv, io) {
       io.stdout(JSON.stringify(helpResult(), null, 2));
       return 0;
     }
-    const isTask = positional[0] === 'task';
-    const cmdKey = isTask ? `task ${positional[1] || ''}`.trim() : positional[0];
-    const spec = COMMANDS[cmdKey];
+    const GROUPED = new Set(['task', 'catalog', 'plan', 'artifact', 'session']);
+    let cmdKey;
+    let spec;
+    let aliasCommand = null;
+    if (GROUPED.has(positional[0])) {
+      cmdKey = `${positional[0]} ${positional[1] || ''}`.trim();
+      spec = COMMANDS[cmdKey];
+    } else if (Object.hasOwn(COMMANDS, positional[0])) {
+      cmdKey = positional[0];
+      spec = COMMANDS[cmdKey];
+    } else {
+      // Aliases derive from canonical catalog command ids; catalog is only
+      // loaded on this path so inspect/init stay independent of it.
+      const cat = loadCatalog({});
+      if (cat.byKey.has(`command/${positional[0]}`.toLowerCase())) {
+        aliasCommand = positional[0];
+        cmdKey = positional[0];
+        spec = { flags: WORKFLOW_ALIAS_FLAGS, pos: 0,
+          usage: `${positional[0]} --project PATH [--mode M] [--task UUID] [--host H] [--profile ID]` };
+      }
+    }
     if (!spec) {
       throw err('INVALID_ARGS',
-        `unknown command '${cmdKey}'; run tasksystem --help`);
+        `unknown command '${positional.slice(0, 2).join(' ')}'; run tasksystem --help`);
     }
     for (const name of Object.keys(flags)) {
       if (name !== '--help' && !spec.flags.includes(name)) {
         throw err('INVALID_ARGS', `${name} is not valid for ${cmdKey}`);
       }
     }
-    const rest = isTask ? positional.slice(2) : positional.slice(1);
-    if (rest.length !== spec.pos) {
+    const isAlias = aliasCommand !== null;
+    const grouped = GROUPED.has(positional[0]);
+    const rest = grouped ? positional.slice(2) : positional.slice(1);
+    const [minP, maxP] = spec.pos === -1 ? [0, 1] : [spec.pos, spec.pos];
+    if (rest.length < minP || rest.length > maxP) {
       throw err('INVALID_ARGS',
         `wrong argument count for ${cmdKey}: ${spec.usage}`);
     }
@@ -299,9 +595,20 @@ export async function run(argv, io) {
         config: flags['--config'],
       });
       return 0;
+    } else if (isAlias) {
+      result = cmdWorkflow(aliasCommand, flags);
+    } else if (cmdKey === 'workflow') {
+      result = cmdWorkflow(rest[0], flags);
+    } else if (cmdKey.startsWith('task ')) {
+      result = await cmdTask(cmdKey.slice(5), rest, flags, io);
+    } else if (cmdKey.startsWith('catalog ')) {
+      result = cmdCatalog(cmdKey.slice(8), rest, flags);
+    } else if (cmdKey.startsWith('plan ')) {
+      result = cmdPlan(cmdKey.slice(5), rest, flags);
+    } else if (cmdKey.startsWith('artifact ')) {
+      result = cmdArtifact(cmdKey.slice(9), rest, flags);
     } else {
-      result = await cmdTask(
-        cmdKey.slice('task '.length), rest, flags, io);
+      result = cmdSession(cmdKey.slice(8), rest, flags);
     }
     io.stdout(JSON.stringify(result, null, 2));
     return 0;

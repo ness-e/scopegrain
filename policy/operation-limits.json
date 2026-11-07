@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "maxDocumentBytes": 1048576,
+  "maxPlanTasks": 100,
+  "maxSessionEvents": 10000,
+  "sessionBudgetDefault": null,
+  "budgetMeasures": "explicitly-recorded-operations-only",
+  "executesProjectCommands": false,
+  "authenticatesEvidence": false,
+  "interceptsNativeTools": false
+}

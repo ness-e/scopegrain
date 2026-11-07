@@ -8,7 +8,8 @@ This repository develops a project-neutral engineering harness.
 - Check whether requested behavior already exists before planning.
 - Keep core code independent of any coding-agent API or product domain.
 - Treat policy/workflow.json as the canonical workflow contract.
-- Keep model instructions in templates/ or skills/, not scattered in code.
+- Keep model instructions in canonical commands/, agents/, skills/, rules/,
+  references/ or templates/, not scattered in executable code.
 - Preserve existing user changes. Do not load or execute legacy/opencode/.
 - Propose exact test/start commands and wait for the owner's authorization.
   Never claim unexecuted checks passed.
@@ -19,4 +20,6 @@ This repository develops a project-neutral engineering harness.
 - Independent review requires a separate context or an explicit owner waiver;
   identifiers in evidence are declarations, not authenticated identity.
 - Update documentation and tests with public behavior changes.
+- Keep operational plans, reviews, notes and logs under .tasksystem/ rather
+  than product documentation. Ask versioning preferences during onboarding.
 - The initial archive is local-only pending provenance and license review.

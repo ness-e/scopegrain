@@ -9,6 +9,12 @@ import { runDoctor } from '../core/doctor.mjs';
 import { inspectProject } from '../discovery/inspect.mjs';
 import { getTask, listTasks } from '../core/tasks.mjs';
 import { checkAction } from '../core/transition.mjs';
+import { catalogDestRel, getResource, loadCatalog } from '../core/catalog.mjs';
+import { err } from '../core/errors.mjs';
+import { buildWorkflowPacket } from '../core/workflows.mjs';
+import { getPlan, nextPlanTasks } from '../core/plans.mjs';
+import { getArtifact } from '../core/artifacts.mjs';
+import { getSession, resumeSession } from '../core/sessions.mjs';
 
 const PROTOCOL_NOTE = 'stdout is reserved for MCP protocol; logs go to stderr';
 
@@ -88,6 +94,109 @@ export function createMCPTools(ctx, z) {
         annotations: READ_ONLY,
       },
       handler: wrap(async ({ taskId, action }) => checkAction(ctx, taskId, action)),
+    },
+    {
+      name: 'tasksystem_catalog_list',
+      config: {
+        description: 'List catalog entries, optionally filtered by kind',
+        inputSchema: { kind: z.string().optional().describe('entry kind') },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ kind }) => {
+        const catalog = loadCatalog({});
+        const entries = kind
+          ? catalog.entries.filter((e) => e.kind === kind) : catalog.entries;
+        if (kind && !catalog.entries.some((e) => e.kind === kind)) {
+          throw err('CATALOG_UNKNOWN_KIND', `unknown catalog kind '${kind}'`);
+        }
+        return {
+          resourceRoot: ctx.configDir,
+          entries: entries.map((e) => ({
+            kind: e.kind, id: e.id, description: e.description,
+            path: catalogDestRel(e), sourcePath: e.path,
+          })),
+        };
+      }),
+    },
+    {
+      name: 'tasksystem_catalog_get',
+      config: {
+        description: 'Get one catalog resource with verbatim content',
+        inputSchema: {
+          kind: z.string().describe('entry kind'),
+          id: z.string().describe('entry id'),
+        },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ kind, id }) => {
+        const r = getResource(kind, id, {});
+        return {
+          kind: r.kind, id: r.id,
+          path: catalogDestRel(r), sourcePath: r.path,
+          resourceRoot: ctx.configDir,
+          description: r.description, content: r.content.toString('utf8'),
+        };
+      }),
+    },
+    {
+      name: 'tasksystem_workflow_packet',
+      config: {
+        description: 'Read-only workflow packet for a catalog command',
+        inputSchema: {
+          command: z.string(),
+          mode: z.string().optional(),
+          taskId: z.string().optional(),
+          host: z.string().optional(),
+          profile: z.string().optional(),
+        },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async (a) => buildWorkflowPacket(ctx, a)),
+    },
+    {
+      name: 'tasksystem_plan_get',
+      config: {
+        description: 'Get one stored plan by key',
+        inputSchema: { key: z.string() },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ key }) => getPlan(ctx, key)),
+    },
+    {
+      name: 'tasksystem_plan_next',
+      config: {
+        description: 'Dependency readiness of a plan from actual task state',
+        inputSchema: { key: z.string() },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ key }) => ({ tasks: nextPlanTasks(ctx, key) })),
+    },
+    {
+      name: 'tasksystem_artifact_get',
+      config: {
+        description: 'Get one stored artifact by kind and UUID',
+        inputSchema: { kind: z.string(), id: z.string() },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ kind, id }) => getArtifact(ctx, kind, id)),
+    },
+    {
+      name: 'tasksystem_session_get',
+      config: {
+        description: 'Get one stored session by UUID',
+        inputSchema: { id: z.string() },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ id }) => getSession(ctx, id)),
+    },
+    {
+      name: 'tasksystem_session_resume',
+      config: {
+        description: 'Session usage plus actual task state and guidance reference',
+        inputSchema: { id: z.string() },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ id }) => resumeSession(ctx, id)),
     },
   ];
 }

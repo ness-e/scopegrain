@@ -3,8 +3,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { err } from './errors.mjs';
-import { mkdirpSync, removeIfExists } from './fsx.mjs';
-import { actionsFor, isTransitionAllowed, knownActions, knownStates } from './policy.mjs';
+import { mkdirpSync, removeIfExists, writeFileExclusive } from './fsx.mjs';
+import { actionsFor, isTransitionAllowed, knownActions, knownStates, loadLimits } from './policy.mjs';
 import { getTask, taskFilePath, validateTaskShape } from './tasks.mjs';
 import { validateReview, validateVerification } from './evidence.mjs';
 
@@ -51,6 +51,7 @@ export function transitionTask(ctx, input) {
   const file = taskFilePath(ctx, id);
   const lockPath = acquireLock(file);
   let tmpPath = null;
+  let tmpOwned = false;
   try {
     const task = getTask(ctx, id);
     if (task.revision !== expectedRevision) {
@@ -106,13 +107,20 @@ export function transitionTask(ctx, input) {
     validateTaskShape(next, `task ${id}`);
     mkdirpSync(path.dirname(file));
     tmpPath = `${file}.tmp-${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
-    fs.writeFileSync(tmpPath, JSON.stringify(next, null, 2) + '\n', { flag: 'wx' });
+    const serialized = JSON.stringify(next, null, 2) + '\n';
+    const maxBytes = loadLimits().maxDocumentBytes;
+    if (Buffer.byteLength(serialized, 'utf8') > maxBytes) {
+      throw err('DOCUMENT_TOO_LARGE',
+        `task record would exceed ${maxBytes} bytes`);
+    }
+    writeFileExclusive(tmpPath, serialized); // cleans itself on write failure
+    tmpOwned = true;
     fs.renameSync(tmpPath, file);
-    tmpPath = null;
+    tmpOwned = false;
     return next;
   } finally {
     removeIfExists(lockPath); // only the lock file created above
-    if (tmpPath) removeIfExists(tmpPath); // our own temp, if rename did not run
+    if (tmpOwned) removeIfExists(tmpPath); // rename path only
   }
 }
 

@@ -63,13 +63,30 @@ function renderCodex(serverPath, projectRoot, configRel) {
   ].join('\n');
 }
 
+// Authoritative OpenCode V2 shape (opencode.ai/docs/mcp-servers):
+// {mcp:{servers:{tasksystem:{type:'local',command:[tokens],disabled:true}}}}
 function renderOpencode(serverPath, projectRoot, configRel) {
+  return JSON.stringify({
+    mcp: {
+      servers: {
+        tasksystem: {
+          type: 'local',
+          command: ['node', ...stdioArgs(serverPath, projectRoot, configRel)],
+          disabled: true,
+        },
+      },
+    },
+  }, null, 2) + '\n';
+}
+
+// Legacy OpenCode V1 proposal, preserved separately.
+function renderOpencodeV1(serverPath, projectRoot, configRel) {
   return JSON.stringify({
     mcp: {
       tasksystem: {
         type: 'local',
         command: ['node', ...stdioArgs(serverPath, projectRoot, configRel)],
-        enabled: true,
+        enabled: false,
       },
     },
   }, null, 2) + '\n';
@@ -80,6 +97,14 @@ const RENDERERS = {
   codex: { file: 'codex-mcp.toml', format: 'toml', render: renderCodex },
   opencode: { file: 'opencode-mcp.json', format: 'json', render: renderOpencode },
   devin: { file: 'devin-mcp.json', format: 'json', render: renderDevin },
+};
+
+// Extra fragments emitted alongside a host's primary file. The V1 OpenCode
+// proposal is kept as a distinct reserved destination, never merged.
+const EXTRA_FILES = {
+  opencode: [
+    { file: 'opencode-v1-mcp.json', format: 'json', render: renderOpencodeV1 },
+  ],
 };
 
 // renderAdapters(config, {projectRoot, configPath, instructionsPath,
@@ -109,6 +134,15 @@ export function renderAdapters(config, opts) {
       machineLocal: true,
       content: spec.render(serverPath, projectRoot, configRel),
     });
+    for (const extra of EXTRA_FILES[host] || []) {
+      files.push({
+        host,
+        relativePath: `integrations/${extra.file}`,
+        format: extra.format,
+        machineLocal: true,
+        content: extra.render(serverPath, projectRoot, configRel),
+      });
+    }
   }
   return {
     files,

@@ -3,12 +3,22 @@
   "locale": "es",
   "hosts": ["claude", "codex", "opencode", "devin"],
   "paths": {
-    "plans": "docs/agent/plans",
-    "tasks": "docs/agent/tasks",
-    "reports": "docs/agent/reports",
-    "research": "docs/agent/research",
-    "decisions": "docs/agent/decisions",
+    "plans": ".tasksystem/plans",
+    "tasks": ".tasksystem/tasks",
+    "reports": ".tasksystem/reports",
+    "research": ".tasksystem/research",
+    "decisions": ".tasksystem/decisions",
     "memory": ".tasksystem/memory",
     "state": ".tasksystem/state"
+  },
+  "versioning": {
+    "plans": false,
+    "tasks": false,
+    "reports": false,
+    "reviews": false,
+    "research": false,
+    "decisions": false,
+    "memory": false,
+    "state": false
   }
 }

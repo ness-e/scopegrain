@@ -65,6 +65,30 @@ export function readJsonFile(p, label) {
   }
 }
 
+// Exclusive write with ownership semantics: the fd is opened OUTSIDE the
+// try, so a failed 'wx' open (EEXIST/EACCES) never triggers cleanup of a
+// file we do not own. After a successful open the file is ours — write
+// loops until complete, and any write/close failure removes only it.
+export function writeFileExclusive(file, content) {
+  const fd = fs.openSync(file, 'wx');
+  try {
+    const buf = Buffer.isBuffer(content) ? content : Buffer.from(content);
+    let off = 0;
+    while (off < buf.length) {
+      const n = fs.writeSync(fd, buf, off, buf.length - off);
+      if (n <= 0) {
+        throw err('WRITE_FAILED', `write made no progress on ${file}`);
+      }
+      off += n;
+    }
+    fs.closeSync(fd);
+  } catch (e) {
+    try { fs.closeSync(fd); } catch { /* already closed */ }
+    removeIfExists(file); // ours: created by the successful open above
+    throw e;
+  }
+}
+
 export function mkdirpSync(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }

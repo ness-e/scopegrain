@@ -77,3 +77,38 @@ export function trySymlink(target, linkPath, type = 'junction') {
     return false; // Windows may deny symlink creation without privilege
   }
 }
+
+// Deliberate CUSTOM path fixture (kept for backward-compat coverage).
+// New-default answers mirror policy/onboarding-defaults.json.
+export const DEFAULT_ANSWERS = {
+  ...VALID_ANSWERS,
+  paths: {
+    plans: '.tasksystem/plans',
+    tasks: '.tasksystem/tasks',
+    reports: '.tasksystem/reports',
+    research: '.tasksystem/research',
+    decisions: '.tasksystem/decisions',
+    memory: '.tasksystem/memory',
+    state: '.tasksystem/state',
+  },
+};
+
+export const ALL_VERSIONING_FALSE = {
+  plans: false, tasks: false, reports: false, reviews: false,
+  research: false, decisions: false, memory: false, state: false,
+};
+
+// Minimal fake catalog install root for loader edge cases.
+export function makeCatalogFixture(root, { entries = null, files = {} } = {}) {
+  const catalog = path.join(root, 'catalog');
+  fs.mkdirSync(catalog, { recursive: true });
+  const manifest = { schemaVersion: 1, entries: entries || [] };
+  fs.writeFileSync(path.join(catalog, 'manifest.json'),
+    JSON.stringify(manifest, null, 2));
+  for (const [rel, content] of Object.entries(files)) {
+    writeFile(root, rel, content);
+  }
+  return root;
+}
+
+// Bootstrapped project fixture (init applied) for ctx-dependent tests.

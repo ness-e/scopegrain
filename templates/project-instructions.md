@@ -6,10 +6,16 @@ TaskSystem installation. Existing user, organization and project rules remain
 authoritative; report conflicts instead of silently replacing them.
 
 The directory containing the configuration also contains `task-contract.md`
-and `skills/`. Read `skills/project-onboarding/SKILL.md` there for onboarding,
+and `catalog.json`, `commands/`, `agents/`, `skills/`, `rules/`, `references/`
+and `profiles/`. Read `skills/project-onboarding/SKILL.md` there for onboarding,
 `skills/contract-execution/SKILL.md` for task execution, and
 `skills/independent-review/SKILL.md` for review. These are explicit file reads,
 not a claim that the host has registered native skills.
+
+Use the catalog to select a command and its required resources. A workflow
+packet supplies procedures and current state; it does not execute a model,
+delegate a native agent or run a shell. The host performs only authorized
+work and must report unavailable capabilities.
 
 ## First session and changed projects
 
@@ -21,7 +27,9 @@ not a claim that the host has registered native skills.
 3. If configuration is missing or its discovery fingerprint is stale, propose
    re-discovery and ask before changing configuration or output locations.
 4. Ask where to store plans, tasks, reports, research, decisions, memory and
-   operational state. Reuse approved paths on later sessions.
+   operational state. Default to the project's own `.tasksystem/` workspace,
+   including reports/reviews; do not scatter operational files into product
+   documentation. Ask which categories to version and reuse approved choices.
 5. Never execute discovered scripts, install packages, contact external
    services or change host permissions just because a manifest suggests it.
 
@@ -42,6 +50,10 @@ not a claim that the host has registered native skills.
 - Evidence and reviewer identifiers are attestations, not authenticated identity.
 - Save a handoff with completed work, remaining work, risks, changed files and
   evidence. Stop at the agreed boundary instead of starting another task.
+- Use plan dependencies and current task records for readiness. Store specs,
+  reports, reviews, research, decisions, lessons and handoffs as artifacts.
+  A resumed session records only its registered operations; its budget does
+  not measure native tool calls, token usage or financial expenditure.
 
 ## Safety and customization
 
@@ -49,6 +61,9 @@ not a claim that the host has registered native skills.
   elevated privileges. Never include secrets in generated or shared artifacts.
 - Do not overwrite existing AGENTS.md, CLAUDE.md or host configurations.
   Suggest a reviewed merge when those files already exist.
+- Do not move old artifacts, edit root ignore rules or untrack files silently.
+  Nested ignore rules cannot override an ignored parent or already tracked
+  files; sharing choices may therefore require explicit owner review.
 - Read only the skills and references relevant to this task. Do not import the
   legacy archive or assume optional tools and databases are available.
 - Use the configured documentation language and the project's naming,
