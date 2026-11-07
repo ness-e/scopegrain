@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "namespace": "tasksystem-",
+  "activation": "manual-review-only",
+  "writeHostRoots": false,
+  "installHooks": false,
+  "installPlugins": false,
+  "readOnlyAgentIds": ["architect", "security-auditor", "researcher", "reviewer", "harness-maintainer"],
+  "hosts": {
+    "claude": {
+      "skillRoot": ".claude/skills",
+      "commandFormat": "skill",
+      "agentRoot": ".claude/agents",
+      "agentFormat": "markdown",
+      "commandFrontmatter": "disable-model-invocation: true\n",
+      "agentFrontmatter": "",
+      "readOnlyAgentFrontmatter": "tools:\n  - Read\n  - Grep\n  - Glob\n",
+      "invocation": "/tasksystem-NAME",
+      "permissionScope": "Selected read-only agent tools only; not path isolation or MCP authentication.",
+      "sources": ["https://code.claude.com/docs/en/skills", "https://code.claude.com/docs/en/sub-agents"]
+    },
+    "codex": {
+      "skillRoot": ".agents/skills",
+      "commandFormat": "skill",
+      "agentRoot": ".codex/agents",
+      "agentFormat": "toml-with-declarations",
+      "commandFrontmatter": "",
+      "agentFrontmatter": "",
+      "readOnlyAgentFrontmatter": "sandbox_mode = \"read-only\"\n",
+      "invocation": "$tasksystem-NAME",
+      "permissionScope": "Read-only filesystem role sandbox; does not certify MCP side effects or network denial.",
+      "sources": ["https://github.com/openai/codex/blob/main/codex-rs/ext/skills/src/host_roots.rs", "https://github.com/openai/codex/blob/main/codex-rs/agent-roles/src/loader.rs", "https://github.com/openai/codex/blob/main/codex-rs/core/src/agent/role_tests.rs"]
+    },
+    "opencode": {
+      "skillRoot": ".opencode/skills",
+      "commandRoot": ".opencode/commands",
+      "commandFormat": "markdown",
+      "agentRoot": ".opencode/agents",
+      "agentFormat": "markdown",
+      "commandFrontmatter": "",
+      "agentFrontmatter": "mode: subagent\n",
+      "readOnlyAgentFrontmatter": "permissions:\n  - action: edit\n    resource: \"*\"\n    effect: deny\n  - action: shell\n    resource: \"*\"\n    effect: deny\n",
+      "invocation": "/tasksystem-NAME",
+      "permissionScope": "OpenCode V2 edit and shell denial only. V1 formats differ.",
+      "sources": ["https://opencode.ai/docs/commands/", "https://opencode.ai/docs/agents/", "https://opencode.ai/docs/mcp-servers/"]
+    },
+    "devin": {
+      "skillRoot": ".devin/skills",
+      "commandFormat": "skill",
+      "agentRoot": ".devin/agents",
+      "agentFormat": "markdown",
+      "commandFrontmatter": "triggers:\n  - user\n",
+      "agentFrontmatter": "",
+      "readOnlyAgentFrontmatter": "allowed-tools:\n  - read\n  - grep\n  - glob\n",
+      "invocation": "/tasksystem-NAME",
+      "permissionScope": "Custom subagent tool allowlist only; inline skill allowed-tools means auto-approval, not restriction.",
+      "sources": ["https://docs.devin.ai/cli/extensibility/skills/creating-skills.md", "https://docs.devin.ai/cli/subagents.md"]
+    }
+  }
+}

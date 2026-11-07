@@ -1,0 +1,2227 @@
+{
+  "schemaVersion": 1,
+  "source": "catalog/legacy-inventory.json",
+  "sourceSha256": "e2ffd82e80642600c76cc73d3c107ebbfd99645601be4cb4dc45432398e427db",
+  "caveat": "Routing aid only. Categories do not certify compatibility, safety, licensing or semantic equivalence.",
+  "counts": {
+    "domain-specific": 112,
+    "external-integration": 28,
+    "general-engineering": 37,
+    "project-specific": 4,
+    "stack-specific": 16
+  },
+  "entries": [
+    {
+      "id": "a11y-accessibility-audit",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "a11y-accessibility-diff",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "a11y-accessibility-fix",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "a11y-accessibility-inspect",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "a11y-accessibility-scan",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "academy-guide",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "ai-sdk",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "ai-seo",
+      "category": "domain-specific",
+      "family": "content-media",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "global-dependency",
+        "external-link"
+      ]
+    },
+    {
+      "id": "api-and-interface-design",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "api-design-principles",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "audit-website",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "global-dependency",
+        "native-agent-format",
+        "external-link"
+      ]
+    },
+    {
+      "id": "awesome-claude-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "brainstorming",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "brand-guidelines",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "brandkit",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "browser-testing-with-devtools",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "global-dependency",
+        "external-link"
+      ]
+    },
+    {
+      "id": "campaign-executor",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/campaign-executor/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path",
+        "machine-path"
+      ]
+    },
+    {
+      "id": "ci-cd-and-automation",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path"
+      ]
+    },
+    {
+      "id": "claude-api",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "global-dependency",
+        "external-link"
+      ]
+    },
+    {
+      "id": "code-review-and-quality",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/code-review-and-quality/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "code-simplification",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/code-simplification/SKILL.md",
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "codebase-memory",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "project-domain",
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "color-expert",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "constraint-driven-development",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "context-engineering",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/context-engineering/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "coordinated-web-search",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "database-design",
+      "category": "domain-specific",
+      "family": "data-modeling",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "database-schema-designer",
+      "category": "domain-specific",
+      "family": "data-modeling",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "debugging-and-error-recovery",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/debugging-and-error-recovery/SKILL.md",
+      "capturedIndicators": [
+        "global-dependency"
+      ]
+    },
+    {
+      "id": "deprecation-and-migration",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "design-audit-orchestrator",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "design-motion-principles",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "design-systems",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "design-taste-frontend",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "design-taste-frontend-v1",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "discernment-nudge",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "doc-coauthoring",
+      "category": "domain-specific",
+      "family": "documents",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "documentation-and-adrs",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/documentation-and-adrs/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "documentation-skill",
+      "category": "project-specific",
+      "family": "private-project",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "project-domain",
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "doubt-driven-development",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "emil-design-eng",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "emilkowalski-motion",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "figma-implement-design",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "frontend-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "frontend-designer",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "frontend-ui-engineering",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "full-output-enforcement",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "git-workflow-and-versioning",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/git-workflow-and-versioning/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "gpt-taste",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "gsap-core",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "gsap-performance",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "gsap-plugins",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "gsap-react",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "gsap-scrolltrigger",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "gsap-timeline",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "gsap-utils",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "high-end-visual-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "icon-generator",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "idea-refine",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "image-to-code",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "imagegen-frontend-web",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "impeccable",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "global-dependency"
+      ]
+    },
+    {
+      "id": "impeccable-design-polish",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "incl-accessibility-decisions-accessibility-debt-tracking",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-accessibility-testing-strategy",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-compliance-mapping",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-decision-documentation",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-document",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-handoff",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-review",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-stakeholder-communication",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessibility-decisions-tradeoff-analysis",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-alt-text-design",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-form-labelling",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-heading-structure",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-link-text-design",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-multimedia-accessibility",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-readable-content",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-review",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-rewrite",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-structure",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-accessible-content-table-accessibility",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-colour-independence",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-flexible-typography",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-information-density",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-preference-audit",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-responsive-accessibility",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-responsive-review",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-simplified-views",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-specify",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-adaptive-interfaces-user-preference-respect",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-adaptive-personalisation",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-assess-load",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-cognitive-load-assessment",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-contextual-help-design",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-error-prevention-recovery",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-focus-attention-design",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-memory-load-reduction",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-plain-language-design",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-review",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-simplify",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-cognitive-accessibility-wayfinding-navigation",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-audit",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-design-flow",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-feedback-and-status",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-gesture-alternatives",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-keyboard-navigation",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-keyboard-review",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-motion-sensitivity",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-multi-modal-input",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-touch-target-design",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-interaction-voice-interaction",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-ability-spectrum-mapping",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-assistive-technology-scenarios",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-audit-stories",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-disability-inclusive-personas",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-edge-case-identification",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-generate",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-inclusive-user-stories",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-scenario-map",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incl-inclusive-personas-situational-impairment-mapping",
+      "category": "domain-specific",
+      "family": "accessibility",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "incremental-implementation",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/incremental-implementation/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "industrial-brutalist-ui",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "interaction-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "interface-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "internal-comms",
+      "category": "domain-specific",
+      "family": "documents",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "interview-me",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/interview-me/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "mcp-builder",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "minimalist-ui",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "motion",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "motion-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "next-best-practices",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "notion-mcp-master",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "observability-and-instrumentation",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "performance-optimization",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/performance-optimization/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "plan-design-review",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "planning-and-task-breakdown",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/planning-and-task-breakdown/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "platform-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "playwright-cli",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "execution-api",
+        "external-link"
+      ]
+    },
+    {
+      "id": "ponytail",
+      "category": "external-integration",
+      "family": "opencode-plugin",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "opencode-path",
+        "global-dependency"
+      ]
+    },
+    {
+      "id": "pr-feedback-quality-gate",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "prisma-expert",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "progreso",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/progreso/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "react-components",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "react-dev",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "react-modernization",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "react-state-management",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "react-useeffect",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "redesign-existing-projects",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "reference-design-contract",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "release-notes-one-pager",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "responsive-craft",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "review-deep",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path",
+        "execution-api"
+      ]
+    },
+    {
+      "id": "screenshots-marketing",
+      "category": "domain-specific",
+      "family": "content-media",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "security-and-hardening",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/security-and-hardening/SKILL.md",
+      "capturedIndicators": [
+        "machine-path",
+        "execution-api",
+        "external-link"
+      ]
+    },
+    {
+      "id": "seo-audit",
+      "category": "domain-specific",
+      "family": "content-media",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "shadcn-ui",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "shipping-and-launch",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/shipping-and-launch/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "slack-gif-creator",
+      "category": "domain-specific",
+      "family": "content-media",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "source-driven-development",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/source-driven-development/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "spec-driven-development",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/spec-driven-development/SKILL.md",
+      "capturedIndicators": [
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "stitch-design-taste",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "stitch-loop",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "supabase-postgres-best-practices",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "systematic-debugging",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/systematic-debugging/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "taste-skill",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "test-driven-development",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/test-driven-development/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path"
+      ]
+    },
+    {
+      "id": "theme-factory",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "ui-design",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "ui-ux-pro-max",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "understand",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "opencode-path",
+        "global-dependency"
+      ]
+    },
+    {
+      "id": "understand-chat",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "understand-dashboard",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "opencode-path",
+        "machine-path",
+        "global-dependency",
+        "external-link"
+      ]
+    },
+    {
+      "id": "understand-diff",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "understand-domain",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "opencode-path",
+        "global-dependency"
+      ]
+    },
+    {
+      "id": "understand-explain",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "understand-knowledge",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "understand-onboard",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "unified-review",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/unified-review/SKILL.md",
+      "capturedIndicators": [
+        "project-domain",
+        "opencode-path",
+        "machine-path",
+        "native-agent-format",
+        "external-link"
+      ]
+    },
+    {
+      "id": "using-agent-skills",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/using-agent-skills/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "ux-flow-designer",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "global-dependency",
+        "external-link"
+      ]
+    },
+    {
+      "id": "ux-heuristics",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "vanta-design-orchestrator",
+      "category": "project-specific",
+      "family": "private-project",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "project-domain"
+      ]
+    },
+    {
+      "id": "vantadb",
+      "category": "project-specific",
+      "family": "private-project",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "project-domain",
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "vantadb-mcp",
+      "category": "project-specific",
+      "family": "private-project",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "project-domain",
+        "machine-path",
+        "global-dependency",
+        "external-link"
+      ]
+    },
+    {
+      "id": "vercel-optimize",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "vercel-react-best-practices",
+      "category": "stack-specific",
+      "family": "javascript-data-stack",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "visual-critique",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "visual-review",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "execution-api",
+        "external-link"
+      ]
+    },
+    {
+      "id": "web-artifacts-builder",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "web-design-guidelines",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "web-research",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": "skills/web-research/SKILL.md",
+      "capturedIndicators": []
+    },
+    {
+      "id": "webapp-testing",
+      "category": "external-integration",
+      "family": "optional-tool",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "wireframer",
+      "category": "domain-specific",
+      "family": "interface-design",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "writing-guidelines",
+      "category": "domain-specific",
+      "family": "documents",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": [
+        "machine-path",
+        "external-link"
+      ]
+    },
+    {
+      "id": "writing-plans",
+      "category": "general-engineering",
+      "family": "engineering",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    },
+    {
+      "id": "xlsx",
+      "category": "domain-specific",
+      "family": "documents",
+      "basis": "identifier-triage-not-semantic-audit",
+      "reviewRequired": true,
+      "originalActivation": "blocked",
+      "freshReplacement": null,
+      "capturedIndicators": []
+    }
+  ]
+}

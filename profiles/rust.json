@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "rust",
+  "description": "Opt-in native ownership and async concerns; no assumed crate or command.",
+  "skills": ["security-and-hardening", "test-driven-development"],
+  "rules": ["safety", "concurrency-async", "core-engine"],
+  "references": ["testing-patterns", "architecture"],
+  "activation": "explicit",
+  "externalServices": []
+}

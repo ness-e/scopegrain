@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "web",
+  "description": "Opt-in browser-facing review; does not install a browser or framework.",
+  "skills": ["performance-optimization", "security-and-hardening"],
+  "rules": ["safety", "frontend-web", "js-ecosystem"],
+  "references": ["frontend-web", "accessibility-checklist", "performance-checklist"],
+  "activation": "explicit",
+  "externalServices": []
+}

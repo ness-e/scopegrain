@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "python",
+  "description": "Opt-in Python API and native boundary inspection.",
+  "skills": ["code-review-and-quality", "test-driven-development"],
+  "rules": ["safety", "python-bindings", "api-contract"],
+  "references": ["python-sdk", "testing-patterns"],
+  "activation": "explicit",
+  "externalServices": []
+}

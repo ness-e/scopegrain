@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "database",
+  "description": "Opt-in storage, index and query contracts; no product-specific semantics.",
+  "skills": ["security-and-hardening", "systematic-debugging"],
+  "rules": ["safety", "durability", "indexes", "query-dsl"],
+  "references": ["architecture", "testing-patterns", "performance-checklist"],
+  "activation": "explicit",
+  "externalServices": []
+}
