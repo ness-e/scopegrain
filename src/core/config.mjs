@@ -12,7 +12,7 @@ import {
 
 import { loadLimits, loadOnboardingDefaults } from './policy.mjs';
 
-export const KNOWN_HOSTS = ['claude', 'codex', 'opencode', 'devin'];
+export const KNOWN_HOSTS = ['claude', 'codex', 'opencode', 'devin', 'antigravity'];
 export const LOCALES = ['es', 'en'];
 export const PATH_KEYS = [
   'plans', 'tasks', 'reports', 'research', 'decisions', 'memory', 'state',

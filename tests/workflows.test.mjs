@@ -2,19 +2,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildWorkflowPacket } from '../src/core/workflows.mjs';
-import { createConfig } from '../src/core/config.mjs';
-import { resolveContext } from '../src/core/context.mjs';
 import { createTask } from '../src/core/tasks.mjs';
 import { transitionTask } from '../src/core/transition.mjs';
 import {
-  VALID_ANSWERS, cleanup, makeTempDir, writeJson,
+  bootstrappedCtx, cleanup,
 } from './helpers.mjs';
 
 function ctxFixture() {
-  const dir = makeTempDir('wf');
-  writeJson(dir, '.tasksystem/config.json',
-    createConfig(dir, VALID_ANSWERS, {}));
-  const ctx = resolveContext({ project: dir });
+  const { dir, ctx } = bootstrappedCtx();
   return { dir, ctx };
 }
 

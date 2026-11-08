@@ -9,7 +9,8 @@ import { runDoctor } from '../core/doctor.mjs';
 import { inspectProject } from '../discovery/inspect.mjs';
 import { getTask, listTasks } from '../core/tasks.mjs';
 import { checkAction } from '../core/transition.mjs';
-import { catalogDestRel, getResource, loadCatalog } from '../core/catalog.mjs';
+import { catalogDestRel, getResource, loadCatalog, loadWorkspaceCatalog } from '../core/catalog.mjs';
+import { diagnoseResource, findResources } from '../core/resource-recovery.mjs';
 import { err } from '../core/errors.mjs';
 import { buildWorkflowPacket } from '../core/workflows.mjs';
 import { getPlan, nextPlanTasks } from '../core/plans.mjs';
@@ -43,10 +44,29 @@ function wrap(fn) {
   };
 }
 
+// Strict input: unknown tool arguments are rejected at the handler level,
+// not silently stripped by schema parsing.
+function strictify(tools) {
+  for (const t of tools) {
+    const allowed = new Set(Object.keys(t.config.inputSchema ?? {}));
+    const inner = t.handler;
+    t.handler = async (args) => {
+      for (const k of Object.keys(args || {})) {
+        if (!allowed.has(k)) {
+          return errorResult(
+            err('INVALID_ARGS', `unknown tool argument '${k}'`));
+        }
+      }
+      return inner(args);
+    };
+  }
+  return tools;
+}
+
 // Tool descriptors shared by the real server and tests. Every handler closes
 // over the bound ctx; no tool argument can redirect to another path.
 export function createMCPTools(ctx, z) {
-  return [
+  return strictify([
     {
       name: 'tasksystem_inspect',
       config: {
@@ -103,7 +123,7 @@ export function createMCPTools(ctx, z) {
         annotations: READ_ONLY,
       },
       handler: wrap(async ({ kind }) => {
-        const catalog = loadCatalog({});
+        const catalog = loadWorkspaceCatalog(ctx);
         const entries = kind
           ? catalog.entries.filter((e) => e.kind === kind) : catalog.entries;
         if (kind && !catalog.entries.some((e) => e.kind === kind)) {
@@ -114,6 +134,11 @@ export function createMCPTools(ctx, z) {
           entries: entries.map((e) => ({
             kind: e.kind, id: e.id, description: e.description,
             path: catalogDestRel(e), sourcePath: e.path,
+          })),
+          aliases: (catalog.aliases ?? []).map((a) => ({
+            kind: a.kind, id: a.id, mode: a.mode ?? null,
+            default: a.default === true, target: a.target,
+            targetMode: a.targetMode ?? null, parameters: a.parameters ?? {},
           })),
         };
       }),
@@ -129,7 +154,8 @@ export function createMCPTools(ctx, z) {
         annotations: READ_ONLY,
       },
       handler: wrap(async ({ kind, id }) => {
-        const r = getResource(kind, id, {});
+        const r = getResource(kind, id,
+          { catalog: loadWorkspaceCatalog(ctx) });
         return {
           kind: r.kind, id: r.id,
           path: catalogDestRel(r), sourcePath: r.path,
@@ -148,10 +174,32 @@ export function createMCPTools(ctx, z) {
           taskId: z.string().optional(),
           host: z.string().optional(),
           profile: z.string().optional(),
+          interaction: z.enum(['direct', 'guided']).optional(),
         },
         annotations: READ_ONLY,
       },
       handler: wrap(async (a) => buildWorkflowPacket(ctx, a)),
+    },
+    {
+      name: 'tasksystem_resource_search',
+      config: {
+        description: 'Search workspace snapshot resource metadata (read-only)',
+        inputSchema: {
+          kind: z.string().optional(),
+          query: z.string().optional(),
+        },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async (a) => findResources(ctx, a)),
+    },
+    {
+      name: 'tasksystem_resource_diagnose',
+      config: {
+        description: 'Diagnose one snapshot resource vs its pinned hash (read-only)',
+        inputSchema: { kind: z.string(), id: z.string() },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async (a) => diagnoseResource(ctx, a)),
     },
     {
       name: 'tasksystem_plan_get',
@@ -198,7 +246,7 @@ export function createMCPTools(ctx, z) {
       },
       handler: wrap(async ({ id }) => resumeSession(ctx, id)),
     },
-  ];
+  ]);
 }
 
 // Constructs the MCP server and registers all tools WITHOUT connecting a
@@ -209,7 +257,12 @@ export async function createMCPServer({ project, config }) {
   const ctx = resolveContext({ project, config });
   const server = new McpServer({ name: 'tasksystem', version: '0.1.0' });
   for (const tool of createMCPTools(ctx, z)) {
-    server.registerTool(tool.name, tool.config, tool.handler);
+    // Explicit strict object schema: the SDK preserves it, so unknown wire
+    // args are rejected BEFORE the handler (raw shape would strip them).
+    server.registerTool(tool.name, {
+      ...tool.config,
+      inputSchema: z.object(tool.config.inputSchema ?? {}).strict(),
+    }, tool.handler);
   }
   return { server, ctx };
 }

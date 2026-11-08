@@ -3,6 +3,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { applyPlan, prepareInit } from '../src/core/bootstrap.mjs';
+import { resolveContext } from '../src/core/context.mjs';
 
 const TMP_ROOT = fileURLToPath(new URL('./.tmp/', import.meta.url));
 
@@ -109,3 +111,13 @@ export function makeCatalogFixture(root, { entries = null, files = {} } = {}) {
 }
 
 // Bootstrapped project fixture (init applied) for ctx-dependent tests.
+
+// Full-init project fixture: applies the whole generated plan so
+// workspace-snapshot APIs (catalog.json, projected resources) exist.
+export function bootstrappedCtx(answers) {
+  const dir = makeTempDir('boot');
+  const plan = prepareInit({ projectRoot: dir,
+    answers: answers ?? { ...DEFAULT_ANSWERS, hosts: ['claude'] } });
+  applyPlan(dir, plan.files);
+  return { dir, ctx: resolveContext({ project: dir }), plan };
+}

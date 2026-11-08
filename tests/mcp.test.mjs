@@ -6,7 +6,7 @@ import { createConfig } from '../src/core/config.mjs';
 import { createTask } from '../src/core/tasks.mjs';
 import { applyPlan, prepareInit } from '../src/core/bootstrap.mjs';
 import {
-  VALID_ANSWERS, cleanup, makeTempDir, writeJson,
+  VALID_ANSWERS, bootstrappedCtx, cleanup, makeTempDir, writeJson,
 } from './helpers.mjs';
 
 const EXPECTED_TOOLS = [
@@ -16,6 +16,7 @@ const EXPECTED_TOOLS = [
   'tasksystem_workflow_packet', 'tasksystem_plan_get',
   'tasksystem_plan_next', 'tasksystem_artifact_get',
   'tasksystem_session_get', 'tasksystem_session_resume',
+  'tasksystem_resource_search', 'tasksystem_resource_diagnose',
 ];
 
 async function depsAvailable() {
@@ -43,11 +44,8 @@ test('descriptors are exactly 13 read-only tools bound to ctx', async (t) => {
   const { z } = await import('zod');
   const { createMCPTools } = await import('../src/mcp/server.mjs');
   const { resolveContext } = await import('../src/core/context.mjs');
-  const dir = makeTempDir('mcp-tools');
+  const { dir, ctx } = bootstrappedCtx();
   try {
-    writeJson(dir, '.tasksystem/config.json',
-      createConfig(dir, VALID_ANSWERS, {}));
-    const ctx = resolveContext({ project: dir });
     const tools = createMCPTools(ctx, z);
     assert.deepEqual(tools.map((x) => x.name).sort(), [...EXPECTED_TOOLS].sort());
     for (const tool of tools) {
@@ -58,9 +56,12 @@ test('descriptors are exactly 13 read-only tools bound to ctx', async (t) => {
       title: 'T', contract: 'C', authorContext: 'a', scope: [],
     });
     const get = tools.find((x) => x.name === 'tasksystem_get_task');
-    const res = await get.handler({ id: task.id, project: '/etc' });
+    // Unknown args are rejected outright, never silently redirected.
+    const rejected = await get.handler({ id: task.id, project: '/etc' });
+    assert.equal(rejected.isError, true);
+    const res = await get.handler({ id: task.id });
     const parsed = JSON.parse(res.content[0].text);
-    assert.equal(parsed.id, task.id); // extra path arg cannot redirect
+    assert.equal(parsed.id, task.id);
     const bad = await get.handler({ id: '../escape' });
     assert.equal(bad.isError, true);
     const check = tools.find((x) => x.name === 'tasksystem_check_action');

@@ -14,11 +14,11 @@ import {
   loadConfig, validateAnswers,
 } from './config.mjs';
 import { inspectProject } from '../discovery/inspect.mjs';
-import { renderAdapters } from '../adapters/render.mjs';
-import { catalogFiles } from './catalog.mjs';
+import { renderAdapters } from '../hosts/render.mjs';
+import { catalogFiles, loadCatalog } from './catalog.mjs';
 import { loadLimits } from './policy.mjs';
 import { buildVersioningFiles } from './versioning.mjs';
-import { renderNativeAdapters } from '../adapters/native.mjs';
+import { renderNativeAdapters } from '../hosts/native.mjs';
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
 export const INSTALL_ROOT = path.resolve(MODULE_DIR, '..', '..');
@@ -67,6 +67,7 @@ export function buildInitPlan({
   const discoveryRel = `${prefix}discovery.json`;
 
   const files = [];
+  const warnings = [];
   files.push(planFile(projectRoot, cfgRel,
     configContent !== undefined
       ? configContent
@@ -116,9 +117,13 @@ export function buildInitPlan({
   // Catalog projection: every manifest entry (commands, agents, skills,
   // rules, references, profiles) plus catalog.json. The three template
   // skills arrive through the catalog mapping skills/<id>/SKILL.md.
-  for (const cf of catalogFiles({
+  // ONE coherent catalog capture: catalogFiles and native adapters share
+  // the same buffers/metadata so the snapshot and bridges never diverge.
+  const catalog = loadCatalog({
     installRoot: installRoot || path.dirname(templatesDir),
-  })) {
+  });
+  const catFiles = catalogFiles({ catalog });
+  for (const cf of catFiles) {
     files.push(planFile(projectRoot, `${prefix}${cf.rel}`, cf.content));
   }
 
@@ -135,6 +140,8 @@ export function buildInitPlan({
   const native = renderNativeAdapters(config, {
     configRel: cfgRel,
     installRoot: installRoot || path.dirname(templatesDir),
+    catalog,
+    projectRoot,
   });
   for (const nf of native.files) {
     files.push(planFile(projectRoot, nf.rel, Buffer.from(nf.content, 'utf8')));
@@ -142,7 +149,30 @@ export function buildInitPlan({
   files.push(planFile(projectRoot,
     `${prefix}integrations/native/activation-plan.json`,
     JSON.stringify(native.activationPlan, null, 2) + '\n'));
-  return { config, files, configDir, configRel: cfgRel };
+
+  // Git transport: .gitattributes INSIDE configDir pins -text for every
+  // generated file under it (config, discovery, instructions, catalog,
+  // integrations, and the attributes file itself) so bytes survive
+  // core.autocrlf checkout. Literal paths only — no wildcards, nothing
+  // outside the config dir. Skipped at project root.
+  if (configDir !== '.') {
+    const esc = (p) => JSON.stringify(
+      `/${p.replace(/([\\*?\[\]])/g, '\\$1')}`);
+    const covered = files
+      .map((f) => f.rel)
+      .filter((rel) => rel.startsWith(prefix))
+      .map((rel) => rel.slice(prefix.length));
+    covered.push('.gitattributes');
+    const lines = covered.map((rel) => `${esc(rel)} -text\n`).join('');
+    files.push(planFile(projectRoot,
+      `${prefix}.gitattributes`,
+      '# Preserve generated harness bytes; root project attributes are '
+        + `unchanged.\n${lines}`));
+  } else {
+    warnings.push('configDir is project root: snapshot Git transport '
+      + '(line-ending conversion) requires manual review');
+  }
+  return { config, files, configDir, configRel: cfgRel, warnings };
 }
 
 // Every planned file is checked before anything is written:

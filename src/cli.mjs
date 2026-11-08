@@ -3,7 +3,7 @@
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { err, toErrorPayload } from './core/errors.mjs';
-import { DEFAULT_CONFIG_PATH, DEFAULT_PATH_PROPOSALS, PATH_KEYS, VERSIONING_KEYS, loadConfig } from './core/config.mjs';
+import { DEFAULT_CONFIG_PATH, DEFAULT_PATH_PROPOSALS, KNOWN_HOSTS, PATH_KEYS, VERSIONING_KEYS, loadConfig } from './core/config.mjs';
 import { resolveContext } from './core/context.mjs';
 import { resolveProjectRoot } from './core/paths.mjs';
 import { prepareInit, applyPlan, preflightPlan } from './core/bootstrap.mjs';
@@ -14,7 +14,8 @@ import { transitionTask, checkAction } from './core/transition.mjs';
 import { readFileLimited } from './core/fsx.mjs';
 import fs from 'node:fs';
 import { loadLimits } from './core/policy.mjs';
-import { checkCatalog, getResource, legacyGet, legacyList, loadCatalog } from './core/catalog.mjs';
+import { checkCatalog, getResource, legacyGet, legacyList, loadCatalog, loadWorkspaceCatalog } from './core/catalog.mjs';
+import { applyResourceRestore, diagnoseResource, findResources, prepareResourceRestore } from './core/resource-recovery.mjs';
 import { buildWorkflowPacket } from './core/workflows.mjs';
 import {
   getPlan, listPlans, nextPlanTasks, preparePlan,
@@ -41,6 +42,7 @@ const VALUE_FLAGS = new Set([
   '--project', '--config', '--answers', '--evidence',
   '--title', '--contract', '--author', '--scope', '--revision',
   '--input', '--task', '--mode', '--host', '--profile', '--limit',
+  '--query', '--interaction',
 ]);
 const BOOL_FLAGS = new Set(['--apply', '--help']);
 const REJECTED_FLAGS = new Set(['--yes', '--force']);
@@ -85,16 +87,32 @@ const COMMANDS = {
     usage: 'task check-action --project PATH ID ACTION',
   },
   'catalog list': {
-    flags: [], pos: -1,
-    usage: 'catalog list [KIND]',
+    flags: ['--project', '--config'], pos: -1,
+    usage: 'catalog list [KIND] [--project PATH]',
   },
   'catalog show': {
-    flags: [], pos: 2,
-    usage: 'catalog show KIND ID',
+    flags: ['--project', '--config'], pos: 2,
+    usage: 'catalog show KIND ID [--project PATH]',
   },
   'catalog check': {
-    flags: [], pos: 0,
-    usage: 'catalog check',
+    flags: ['--project', '--config'], pos: 0,
+    usage: 'catalog check [--project PATH]',
+  },
+  'resource search': {
+    flags: ['--project', '--config', '--query'], pos: -1,
+    usage: 'resource search [KIND] --project PATH [--query Q]',
+  },
+  'resource diagnose': {
+    flags: ['--project', '--config'], pos: 2,
+    usage: 'resource diagnose KIND ID --project PATH',
+  },
+  'resource restore-plan': {
+    flags: ['--project', '--config', '--input'], pos: 0,
+    usage: 'resource restore-plan --project PATH --input FILE',
+  },
+  'resource restore': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 0,
+    usage: 'resource restore --project PATH --input FILE [--apply]',
   },
   'catalog legacy': {
     flags: [], pos: -1,
@@ -105,9 +123,9 @@ const COMMANDS = {
     usage: 'catalog legacy-show KIND ID',
   },
   workflow: {
-    flags: ['--project', '--config', '--mode', '--task', '--host', '--profile'],
+    flags: ['--project', '--config', '--mode', '--task', '--host', '--profile', '--interaction'],
     pos: 1,
-    usage: 'workflow COMMAND [--mode M] [--task UUID] [--host H] [--profile ID]',
+    usage: 'workflow COMMAND [--mode M] [--task UUID] [--host H] [--profile ID] [--interaction direct|guided]',
   },
   'plan create': {
     flags: ['--project', '--config', '--input', '--apply'], pos: 0,
@@ -150,6 +168,7 @@ const COMMANDS = {
 // the flag set is fixed by the settled interface.
 const WORKFLOW_ALIAS_FLAGS = [
   '--project', '--config', '--mode', '--task', '--host', '--profile',
+  '--interaction',
 ];
 
 function helpResult() {
@@ -237,8 +256,9 @@ async function askInteractive(io, projectRoot, configFlag, existing) {
     existing ? existing.project.name : path.basename(projectRoot));
   answers.locale = await io.ask('Idioma (es/en)',
     existing ? existing.locale : 'es');
-  const hostsRaw = await io.ask('Anfitriones (claude,codex,opencode,devin)',
-    existing ? existing.hosts.join(',') : 'claude,codex,opencode,devin');
+  const hostList = KNOWN_HOSTS.join(',');
+  const hostsRaw = await io.ask(`Anfitriones (${hostList})`,
+    existing ? existing.hosts.join(',') : hostList);
   answers.hosts = hostsRaw.split(',').map((h) => h.trim()).filter(Boolean);
   const configRel = await io.ask('Ruta de configuracion',
     configFlag || DEFAULT_CONFIG_PATH);
@@ -271,7 +291,10 @@ function planJson(prepared) {
       commands: prepared.discovery.commands,
       fingerprint: prepared.discovery.fingerprint,
     },
-    warnings: prepared.discovery.warnings,
+    warnings: [
+      ...(prepared.warnings ?? []),
+      ...(prepared.discovery.warnings ?? []),
+    ],
   };
 }
 
@@ -373,15 +396,25 @@ function decimalInt(value, label) {
   return Number(value);
 }
 
-function cmdCatalog(sub, positional) {
+function cmdCatalog(sub, positional, flags) {
+  if (flags['--config'] && !flags['--project']) {
+    throw err('INVALID_ARGS', '--config requires --project');
+  }
+  // --project binds to the workspace snapshot; otherwise installation
+  // (labelled so the two sources are never confused).
+  const ctx = flags['--project']
+    ? resolveContext({ project: flags['--project'], config: flags['--config'] })
+    : null;
+  const bound = ctx ? loadWorkspaceCatalog(ctx) : null;
+  const source = ctx ? 'workspace-snapshot' : 'installation';
   if (sub === 'legacy') {
-    return legacyList({ kind: positional[0] }, {});
+    return { source, ...legacyList({ kind: positional[0] }, {}) };
   }
   if (sub === 'legacy-show') {
-    return legacyGet(positional[0], positional[1], {});
+    return { source, ...legacyGet(positional[0], positional[1], {}) };
   }
   if (sub === 'list') {
-    const catalog = loadCatalog({});
+    const catalog = bound ?? loadCatalog({});
     const kind = positional[0];
     const entries = kind
       ? catalog.entries.filter((e) => e.kind === kind)
@@ -390,27 +423,67 @@ function cmdCatalog(sub, positional) {
       throw err('CATALOG_UNKNOWN_KIND', `unknown catalog kind '${kind}'`);
     }
     return {
+      source,
       entries: entries.map(({ kind: k, id, description, path: p }) =>
         ({ kind: k, id, description, path: p })),
+      aliases: (catalog.aliases ?? []).map((a) => ({
+        kind: a.kind, id: a.id, mode: a.mode ?? null,
+        default: a.default === true, target: a.target,
+        targetMode: a.targetMode ?? null, parameters: a.parameters ?? {},
+      })),
     };
   }
   if (sub === 'show') {
-    const r = getResource(positional[0], positional[1], {});
+    const r = bound
+      ? getResource(positional[0], positional[1], { catalog: bound })
+      : getResource(positional[0], positional[1], {});
     return {
+      source,
       kind: r.kind, id: r.id, path: r.path,
+      requestedId: r.requestedId, canonicalId: r.canonicalId,
+      resolvedVia: r.resolvedVia,
       description: r.description,
       content: r.content.toString('utf8'),
     };
   }
   if (sub === 'check') {
-    const report = checkCatalog({});
+    const report = bound
+      ? { ok: true, issues: [], entries: bound.entries.length,
+          integrity: bound.integrity, warnings: bound.warnings }
+      : checkCatalog({});
     if (!report.ok) {
       throw err('CATALOG_INVALID',
         `catalog check failed: ${report.issues.map((i) => i.message).join(' | ')}`);
     }
-    return report;
+    return { source, ...report };
   }
   throw err('INVALID_ARGS', `unknown catalog subcommand '${sub}'`);
+}
+
+function cmdResource(sub, rest, flags) {
+  const ctx = resolveContext({
+    project: requireFlag(flags, '--project'), config: flags['--config'],
+  });
+  if (sub === 'search') {
+    return findResources(ctx, { kind: rest[0], query: flags['--query'] });
+  }
+  if (sub === 'diagnose') {
+    return diagnoseResource(ctx, { kind: rest[0], id: rest[1] });
+  }
+  if (!flags['--input']) {
+    throw err('INVALID_ARGS', `${sub} requires --input FILE`);
+  }
+  const input = readInputFile(flags['--input'], 'resource input');
+  if (sub === 'restore-plan') {
+    return prepareResourceRestore(ctx, input);
+  }
+  if (sub === 'restore') {
+    if (flags['--apply'] !== true) {
+      return { mode: 'dry-run', ...prepareResourceRestore(ctx, input) };
+    }
+    return { mode: 'apply', ...applyResourceRestore(ctx, input) };
+  }
+  throw err('INVALID_ARGS', `unknown resource subcommand '${sub}'`);
 }
 
 function cmdWorkflow(command, flags) {
@@ -423,6 +496,7 @@ function cmdWorkflow(command, flags) {
     taskId: flags['--task'],
     host: flags['--host'],
     profile: flags['--profile'],
+    interaction: flags['--interaction'],
   });
 }
 
@@ -540,7 +614,7 @@ export async function run(argv, io) {
       io.stdout(JSON.stringify(helpResult(), null, 2));
       return 0;
     }
-    const GROUPED = new Set(['task', 'catalog', 'plan', 'artifact', 'session']);
+    const GROUPED = new Set(['task', 'catalog', 'plan', 'artifact', 'session', 'resource']);
     let cmdKey;
     let spec;
     let aliasCommand = null;
@@ -552,9 +626,16 @@ export async function run(argv, io) {
       spec = COMMANDS[cmdKey];
     } else {
       // Aliases derive from canonical catalog command ids; catalog is only
-      // loaded on this path so inspect/init stay independent of it.
-      const cat = loadCatalog({});
-      if (cat.byKey.has(`command/${positional[0]}`.toLowerCase())) {
+      // loaded on this path so inspect/init stay independent of it. With
+      // --project the alias set comes from the workspace snapshot.
+      const cat = flags['--project']
+        ? loadWorkspaceCatalog(resolveContext({
+          project: flags['--project'], config: flags['--config'] }))
+        : loadCatalog({});
+      if (cat.byKey.has(`command/${positional[0]}`.toLowerCase())
+          || cat.aliases?.some(
+            (a) => a.kind === 'command'
+              && a.id.toLowerCase() === positional[0].toLowerCase())) {
         aliasCommand = positional[0];
         cmdKey = positional[0];
         spec = { flags: WORKFLOW_ALIAS_FLAGS, pos: 0,
@@ -603,6 +684,8 @@ export async function run(argv, io) {
       result = await cmdTask(cmdKey.slice(5), rest, flags, io);
     } else if (cmdKey.startsWith('catalog ')) {
       result = cmdCatalog(cmdKey.slice(8), rest, flags);
+    } else if (cmdKey.startsWith('resource ')) {
+      result = cmdResource(cmdKey.slice(9), rest, flags);
     } else if (cmdKey.startsWith('plan ')) {
       result = cmdPlan(cmdKey.slice(5), rest, flags);
     } else if (cmdKey.startsWith('artifact ')) {

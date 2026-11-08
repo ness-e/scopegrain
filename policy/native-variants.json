@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "hosts": {
+    "opencode": [
+      {
+        "id": "v1",
+        "surfaces": [
+          "cli"
+        ],
+        "selectionRequired": true,
+        "emitAgents": true,
+        "agentFrontmatter": "mode: subagent\n",
+        "readOnlyAgentFrontmatter": "permission:\n  edit: deny\n  bash: deny\n  task: deny\n",
+        "permissionScope": "Requested V1 edit/bash/task denial. Does not authenticate MCP or certify runtime enforcement.",
+        "compatibility": "documented-only",
+        "sources": [
+          "https://github.com/anomalyco/opencode/blob/v2.1.2/services/www/src/docs/content/migrate-v1.mdx"
+        ],
+        "modelSelection": "host-policy"
+      },
+      {
+        "id": "v2",
+        "surfaces": [
+          "cli"
+        ],
+        "selectionRequired": true,
+        "emitAgents": true,
+        "agentFrontmatter": "mode: subagent\n",
+        "readOnlyAgentFrontmatter": "permissions:\n  - action: edit\n    resource: \"*\"\n    effect: deny\n  - action: shell\n    resource: \"*\"\n    effect: deny\n  - action: subagent\n    resource: \"*\"\n    effect: deny\n",
+        "permissionScope": "Requested V2 edit/shell/subagent denial. Does not authenticate MCP or certify runtime enforcement.",
+        "compatibility": "documented-only",
+        "sources": [
+          "https://github.com/anomalyco/opencode/blob/v2.1.2/services/www/src/docs/content/migrate-v1.mdx"
+        ],
+        "modelSelection": "host-policy"
+      }
+    ],
+    "antigravity": [
+      {
+        "id": "app-cli",
+        "surfaces": [
+          "app",
+          "cli"
+        ],
+        "selectionRequired": true,
+        "emitAgents": true,
+        "agentFrontmatter": "mainAgent: false\nsubagent: true\n",
+        "readOnlyAgentFrontmatter": "tools:\n  - view_file\n  - grep_search\n",
+        "permissionScope": "Requested read-tool allowlist for documented App/CLI agents. Tool availability and runtime denial require a pilot.",
+        "compatibility": "documented-only",
+        "sources": [
+          "https://antigravity.google/docs/subagents"
+        ],
+        "modelSelection": "host-policy"
+      },
+      {
+        "id": "ide",
+        "surfaces": [
+          "ide"
+        ],
+        "selectionRequired": true,
+        "emitAgents": false,
+        "agentFrontmatter": "",
+        "readOnlyAgentFrontmatter": "",
+        "permissionScope": "Skills-only proposal; App/CLI custom-agent behavior is not assumed for IDE.",
+        "compatibility": "documented-only",
+        "sources": [
+          "https://antigravity.google/docs/skills",
+          "https://antigravity.google/docs/ide/workflows"
+        ],
+        "modelSelection": "host-policy"
+      }
+    ]
+  }
+}

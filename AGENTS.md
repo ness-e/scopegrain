@@ -8,8 +8,11 @@ This repository develops a project-neutral engineering harness.
 - Check whether requested behavior already exists before planning.
 - Keep core code independent of any coding-agent API or product domain.
 - Treat policy/workflow.json as the canonical workflow contract.
-- Keep model instructions in canonical commands/, agents/, skills/, rules/,
-  references/ or templates/, not scattered in executable code.
+- Keep model instructions in canonical resources/commands/, resources/agents/,
+  resources/skills/, resources/rules/, resources/references/,
+  resources/prompts/ or templates/, not scattered in executable code.
+- Treat resources/manifest.json as the canonical resource catalog. Resources
+  in project snapshots are not permission to activate hosts or run tools.
 - Preserve existing user changes. Do not load or execute legacy/opencode/.
 - Propose exact test/start commands and wait for the owner's authorization.
   Never claim unexecuted checks passed.

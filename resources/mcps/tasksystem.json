@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "tasksystem",
+  "transport": "stdio",
+  "commandTemplate": ["node", "{installRoot}/src/mcp/server.mjs", "--project", "{projectRoot}", "--config", "{configRel}"],
+  "toolExecution": "read-only-harness-queries",
+  "activation": "manual-review-only",
+  "requiresExternalActivation": true,
+  "credentials": "none-generated",
+  "notes": "Descriptor data only. Reading or restoring it never starts or reconnects a server."
+}

@@ -32,7 +32,9 @@ test('catalog list/show/check/legacy resolve through grouped dispatch', async ()
   assert.ok(lastJson(io).entries.every((e) => e.kind === 'command'));
   io = fakeIO();
   assert.equal(await run(['catalog', 'show', 'command', 'pipeline'], io), 0);
-  assert.equal(lastJson(io).id, 'pipeline');
+  assert.equal(lastJson(io).id, 'plan-work');
+  assert.equal(lastJson(io).requestedId, 'pipeline');
+  assert.equal(lastJson(io).resolvedVia, 'alias');
   io = fakeIO();
   assert.equal(await run(['catalog', 'check'], io), 0);
   assert.equal(lastJson(io).ok, true);

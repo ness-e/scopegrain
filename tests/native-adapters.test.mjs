@@ -64,13 +64,19 @@ test('frontmatter: permission lines land INSIDE the YAML fence', () => {
   const dh = devinCmd.content.toString('utf8').split(/^---$/m)[1];
   assert.ok(dh.includes('triggers:\n  - user'));
   // OpenCode commands land in command root, not skill root.
+  // OpenCode emits V1 and V2 variants with their own permission frontmatter.
   const ocCmd = files.find((f) =>
-    f.rel.endsWith('/opencode/.opencode/commands/tasksystem-ship.md'));
+    f.rel.endsWith('/opencode/v2/.opencode/commands/tasksystem-assess-release.md'));
   assert.ok(ocCmd);
   assert.ok(ocCmd.content.toString('utf8').startsWith('---\ndescription:'));
-  const ocAgent = files.find((f) =>
-    f.rel.endsWith('/opencode/.opencode/agents/tasksystem-reviewer.md'));
-  assert.ok(ocAgent.content.toString('utf8')
+  const ocAgentV1 = files.find((f) =>
+    f.rel.endsWith('/opencode/v1/.opencode/agents/tasksystem-reviewer.md'));
+  const ocAgentV2 = files.find((f) =>
+    f.rel.endsWith('/opencode/v2/.opencode/agents/tasksystem-reviewer.md'));
+  assert.ok(ocAgentV1 && ocAgentV2);
+  assert.ok(ocAgentV1.content.toString('utf8')
+    .split(/^---$/m)[1].includes('bash: deny'));
+  assert.ok(ocAgentV2.content.toString('utf8')
     .split(/^---$/m)[1].includes('effect: deny'));
 });
 
@@ -80,7 +86,8 @@ test('codex TOML roles use JSON-quoted strings + declaration fragments', () => {
     f.rel.endsWith('/codex/.codex/agents/tasksystem-reviewer.toml'));
   assert.ok(role);
   const text = role.content.toString('utf8');
-  assert.ok(text.startsWith('description = "'));
+  assert.ok(text.startsWith('name = "tasksystem-reviewer"'));
+  assert.ok(text.includes('description = "'));
   assert.ok(text.includes('developer_instructions = "'));
   assert.ok(text.includes('sandbox_mode = "read-only"'));
   // ONE fragment outside .codex/agents with all 11 declarations.
@@ -90,7 +97,9 @@ test('codex TOML roles use JSON-quoted strings + declaration fragments', () => {
   const ftext = frag.content.toString('utf8');
   assert.ok(ftext.includes('[agents."tasksystem-reviewer"]'));
   assert.ok(ftext.includes('config_file = "agents/tasksystem-reviewer.toml"'));
-  assert.equal((ftext.match(/\[agents\./g) || []).length, 11);
+  const nAgents = files.filter((f) =>
+    f.rel.includes('/codex/.codex/agents/')).length;
+  assert.equal((ftext.match(/\[agents\./g) || []).length, nAgents);
   assert.ok(!files.some((f) => f.rel.includes('.decl.toml')));
   assert.ok(!files.some((f) =>
     f.rel.includes('/codex/.codex/agents/')

@@ -1,0 +1,1358 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "kind": "command",
+      "id": "plan-work",
+      "path": "resources/commands/plan-work.md",
+      "description": "Prepare a dependency graph for approved work without executing it.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "lead",
+        "architect"
+      ],
+      "skills": [
+        "planning-and-task-breakdown",
+        "writing-plans",
+        "plan-design-review"
+      ],
+      "rules": [
+        "workflow",
+        "api-contract"
+      ],
+      "references": [
+        "architecture",
+        "backlog-format"
+      ],
+      "prompts": [
+        "task-brief",
+        "decision-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "implement-task",
+      "path": "resources/commands/implement-task.md",
+      "description": "Implement one approved dependency-ready task and verify its scope.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "implementer",
+        "reviewer"
+      ],
+      "skills": [
+        "contract-execution",
+        "incremental-implementation",
+        "test-driven-development",
+        "systematic-debugging"
+      ],
+      "rules": [
+        "workflow",
+        "evidence",
+        "review"
+      ],
+      "references": [
+        "definition-of-done",
+        "testing-patterns"
+      ],
+      "prompts": [
+        "task-brief",
+        "review-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "coordinate-plan",
+      "path": "resources/commands/coordinate-plan.md",
+      "description": "Coordinate ready tasks within an approved plan and explicit limits.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "lead"
+      ],
+      "skills": [
+        "plan-coordination",
+        "context-engineering"
+      ],
+      "rules": [
+        "workflow",
+        "memory-budget"
+      ],
+      "references": [
+        "orchestration-patterns",
+        "task-system"
+      ],
+      "prompts": [
+        "task-brief",
+        "recovery-brief"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "specify-change",
+      "path": "resources/commands/specify-change.md",
+      "description": "Define an observable outcome and falsifiable change requirements.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "requirements-analyst",
+        "architect"
+      ],
+      "skills": [
+        "spec-driven-development",
+        "outcome-driven-development",
+        "clarify-intent",
+        "resolve-ambiguity"
+      ],
+      "rules": [
+        "api-contract",
+        "methodology"
+      ],
+      "references": [
+        "architecture",
+        "definition-of-done"
+      ],
+      "prompts": [
+        "decision-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "triage-work",
+      "path": "resources/commands/triage-work.md",
+      "description": "Recommend backlog priorities from current evidence without applying them.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "lead"
+      ],
+      "skills": [
+        "planning-and-task-breakdown"
+      ],
+      "rules": [
+        "evidence"
+      ],
+      "references": [
+        "backlog-format"
+      ],
+      "prompts": [
+        "decision-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "report-status",
+      "path": "resources/commands/report-status.md",
+      "description": "Report actual progress, verification gaps and the next decision.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "lead"
+      ],
+      "skills": [
+        "session-handoff",
+        "context-engineering"
+      ],
+      "rules": [
+        "evidence"
+      ],
+      "references": [
+        "task-system"
+      ],
+      "prompts": [
+        "decision-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "verify-work",
+      "path": "resources/commands/verify-work.md",
+      "description": "Execute or prescribe scoped verification and preserve raw evidence.",
+      "modes": [
+        "quick",
+        "certify"
+      ],
+      "agents": [
+        "verification-engineer"
+      ],
+      "skills": [
+        "test-driven-development"
+      ],
+      "rules": [
+        "evidence"
+      ],
+      "references": [
+        "test-suite",
+        "quality-floor",
+        "testing-patterns"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "review-change",
+      "path": "resources/commands/review-change.md",
+      "description": "Review a change for behavioral risks and missing verification.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "reviewer",
+        "architect"
+      ],
+      "skills": [
+        "code-review-and-quality",
+        "independent-review"
+      ],
+      "rules": [
+        "review",
+        "api-contract"
+      ],
+      "references": [
+        "clean-code-clean-architecture",
+        "definition-of-done"
+      ],
+      "prompts": [
+        "review-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "audit-project",
+      "path": "resources/commands/audit-project.md",
+      "description": "Assess an agreed project surface and report evidence-based risks.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "architect",
+        "security-auditor"
+      ],
+      "skills": [
+        "review-deep",
+        "security-and-hardening"
+      ],
+      "rules": [
+        "safety",
+        "evidence"
+      ],
+      "references": [
+        "architecture",
+        "security-checklist",
+        "test-suite"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "audit-harness",
+      "path": "resources/commands/audit-harness.md",
+      "description": "Inspect harness contracts, resources and capability claims.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "harness-maintainer"
+      ],
+      "skills": [
+        "context-engineering",
+        "select-capabilities"
+      ],
+      "rules": [
+        "resource-integrity",
+        "mcp-integration"
+      ],
+      "references": [
+        "skills-engineering",
+        "mcp-tools"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "investigate",
+      "path": "resources/commands/investigate.md",
+      "description": "Answer a bounded research question using inspectable evidence.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "researcher"
+      ],
+      "skills": [
+        "web-research",
+        "source-driven-development"
+      ],
+      "rules": [
+        "evidence",
+        "research-escalation"
+      ],
+      "references": [
+        "research-modules"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "compare-options",
+      "path": "resources/commands/compare-options.md",
+      "description": "Compare existing evidence and recommend an explicit owner decision.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "researcher",
+        "lead"
+      ],
+      "skills": [
+        "discernment-nudge",
+        "outcome-driven-development"
+      ],
+      "rules": [
+        "evidence",
+        "human-decisions"
+      ],
+      "references": [
+        "research-modules"
+      ],
+      "prompts": [
+        "decision-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "assess-release",
+      "path": "resources/commands/assess-release.md",
+      "description": "Assess release readiness without publishing or deploying.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "release-engineer",
+        "security-auditor"
+      ],
+      "skills": [
+        "shipping-and-launch"
+      ],
+      "rules": [
+        "release-ci",
+        "licensing-and-provenance"
+      ],
+      "references": [
+        "ship-runbook",
+        "definition-of-done"
+      ],
+      "prompts": [
+        "decision-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "plan-recovery",
+      "path": "resources/commands/plan-recovery.md",
+      "description": "Prepare a recovery plan from observed state without applying it.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "release-engineer",
+        "resilience-tester"
+      ],
+      "skills": [
+        "debugging-and-error-recovery"
+      ],
+      "rules": [
+        "durability",
+        "human-decisions"
+      ],
+      "references": [
+        "ship-runbook"
+      ],
+      "prompts": [
+        "recovery-brief",
+        "decision-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "simplify-code",
+      "path": "resources/commands/simplify-code.md",
+      "description": "Simplify demonstrated complexity while preserving observable behavior.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "implementer",
+        "reviewer"
+      ],
+      "skills": [
+        "code-simplification",
+        "test-driven-development"
+      ],
+      "rules": [
+        "api-contract",
+        "review"
+      ],
+      "references": [
+        "testing-patterns",
+        "clean-code-clean-architecture"
+      ],
+      "prompts": [
+        "review-request"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "analyze-structure",
+      "path": "resources/commands/analyze-structure.md",
+      "description": "Analyze structural impact with available graph and source evidence.",
+      "modes": [
+        "default"
+      ],
+      "agents": [
+        "architect"
+      ],
+      "skills": [
+        "context-engineering"
+      ],
+      "rules": [
+        "evidence",
+        "api-contract"
+      ],
+      "references": [
+        "architecture",
+        "graph-investigation"
+      ]
+    },
+    {
+      "kind": "command",
+      "id": "audit-web-performance",
+      "path": "resources/commands/audit-web-performance.md",
+      "description": "Assess an authorized web workload with reproducible performance evidence.",
+      "modes": [
+        "quick",
+        "deep"
+      ],
+      "agents": [
+        "performance-engineer"
+      ],
+      "skills": [
+        "performance-optimization"
+      ],
+      "rules": [
+        "frontend-web",
+        "evidence"
+      ],
+      "references": [
+        "performance-checklist",
+        "observability-checklist"
+      ]
+    },
+    {
+      "kind": "agent",
+      "id": "requirements-analyst",
+      "path": "resources/agents/requirements-analyst.md",
+      "description": "Clarify outcomes and falsifiable requirements without deciding product intent."
+    },
+    {
+      "kind": "agent",
+      "id": "verification-engineer",
+      "path": "resources/agents/verification-engineer.md",
+      "description": "Produce scoped verification evidence without changing the acceptance floor."
+    },
+    {
+      "kind": "agent",
+      "id": "integration-engineer",
+      "path": "resources/agents/integration-engineer.md",
+      "description": "Implement approved host adapters with explicit version and permission boundaries."
+    },
+    {
+      "kind": "agent",
+      "id": "release-engineer",
+      "path": "resources/agents/release-engineer.md",
+      "description": "Prepare release readiness and recovery evidence without publishing."
+    },
+    {
+      "kind": "prompt",
+      "id": "task-brief",
+      "path": "resources/prompts/task-brief.md",
+      "description": "Structure a bounded implementation brief from settled inputs."
+    },
+    {
+      "kind": "prompt",
+      "id": "decision-request",
+      "path": "resources/prompts/decision-request.md",
+      "description": "Ask a consequential question with explicit alternatives and authority."
+    },
+    {
+      "kind": "prompt",
+      "id": "review-request",
+      "path": "resources/prompts/review-request.md",
+      "description": "Supply an independent reviewer with the contract and actual evidence."
+    },
+    {
+      "kind": "prompt",
+      "id": "recovery-brief",
+      "path": "resources/prompts/recovery-brief.md",
+      "description": "Resume from preserved evidence without replaying uncertain effects."
+    },
+    {
+      "kind": "rule",
+      "id": "human-decisions",
+      "path": "resources/rules/human-decisions.md",
+      "description": "Consequential decisions require scoped consent tied to reviewed inputs."
+    },
+    {
+      "kind": "rule",
+      "id": "resource-integrity",
+      "path": "resources/rules/resource-integrity.md",
+      "description": "Use the project snapshot and diagnose drift without silent fallback."
+    },
+    {
+      "kind": "rule",
+      "id": "research-escalation",
+      "path": "resources/rules/research-escalation.md",
+      "description": "Stop repeated blind attempts and investigate with permission and sources."
+    },
+    {
+      "kind": "rule",
+      "id": "methodology",
+      "path": "resources/rules/methodology.md",
+      "description": "Connect observable outcomes, approved specifications, tasks and evidence."
+    },
+    {
+      "kind": "skill",
+      "id": "outcome-driven-development",
+      "path": "resources/skills/outcome-driven-development/SKILL.md",
+      "description": "Use when defining or accepting a change to agree observable outcomes and evidence."
+    },
+    {
+      "kind": "mcp",
+      "id": "tasksystem",
+      "path": "resources/mcps/tasksystem.json",
+      "description": "Read the harness MCP connection descriptor without starting or reconnecting it."
+    },
+    {
+      "kind": "agent",
+      "id": "lead",
+      "path": "resources/agents/lead.md",
+      "description": "Coordinate work, human decisions, scoped delegation and delivery."
+    },
+    {
+      "kind": "agent",
+      "id": "architect",
+      "path": "resources/agents/architect.md",
+      "description": "Design interfaces and boundaries with explicit tradeoffs."
+    },
+    {
+      "kind": "agent",
+      "id": "implementer",
+      "path": "resources/agents/implementer.md",
+      "description": "Implement the approved scope in small verified slices."
+    },
+    {
+      "kind": "agent",
+      "id": "algorithm-specialist",
+      "path": "resources/agents/algorithm-specialist.md",
+      "description": "Design domain algorithms with stated invariants and complexity."
+    },
+    {
+      "kind": "agent",
+      "id": "security-auditor",
+      "path": "resources/agents/security-auditor.md",
+      "description": "Inspect trust boundaries and report evidenced security risks."
+    },
+    {
+      "kind": "agent",
+      "id": "resilience-tester",
+      "path": "resources/agents/resilience-tester.md",
+      "description": "Test failure handling in explicitly disposable environments."
+    },
+    {
+      "kind": "agent",
+      "id": "performance-engineer",
+      "path": "resources/agents/performance-engineer.md",
+      "description": "Measure and explain performance without confusing estimates with results."
+    },
+    {
+      "kind": "agent",
+      "id": "documentation",
+      "path": "resources/agents/documentation.md",
+      "description": "Document actual behavior, public contracts and limitations."
+    },
+    {
+      "kind": "agent",
+      "id": "researcher",
+      "path": "resources/agents/researcher.md",
+      "description": "Answer scoped questions with inspectable sources and uncertainty."
+    },
+    {
+      "kind": "agent",
+      "id": "reviewer",
+      "path": "resources/agents/reviewer.md",
+      "description": "Independently assess scope, behavior and verification claims."
+    },
+    {
+      "kind": "agent",
+      "id": "harness-maintainer",
+      "path": "resources/agents/harness-maintainer.md",
+      "description": "Inspect harness consistency, capability claims and drift."
+    },
+    {
+      "kind": "skill",
+      "id": "project-onboarding",
+      "path": "resources/skills/project-onboarding/SKILL.md",
+      "description": "Read-only onboarding and consent-based configuration."
+    },
+    {
+      "kind": "skill",
+      "id": "contract-execution",
+      "path": "resources/skills/contract-execution/SKILL.md",
+      "description": "Execute a scoped task through the recorded lifecycle."
+    },
+    {
+      "kind": "skill",
+      "id": "independent-review",
+      "path": "resources/skills/independent-review/SKILL.md",
+      "description": "Review another context's changes or record an explicit owner waiver."
+    },
+    {
+      "kind": "skill",
+      "id": "planning-and-task-breakdown",
+      "path": "resources/skills/planning-and-task-breakdown/SKILL.md",
+      "description": "Decompose a verified gap into dependent, accepted tasks."
+    },
+    {
+      "kind": "skill",
+      "id": "spec-driven-development",
+      "path": "resources/skills/spec-driven-development/SKILL.md",
+      "description": "Define a falsifiable change contract before coding."
+    },
+    {
+      "kind": "skill",
+      "id": "plan-coordination",
+      "path": "resources/skills/plan-coordination/SKILL.md",
+      "description": "Select dependency-ready work and preserve progress without blind retries."
+    },
+    {
+      "kind": "skill",
+      "id": "incremental-implementation",
+      "path": "resources/skills/incremental-implementation/SKILL.md",
+      "description": "Deliver narrow vertical slices with scoped verification."
+    },
+    {
+      "kind": "skill",
+      "id": "systematic-debugging",
+      "path": "resources/skills/systematic-debugging/SKILL.md",
+      "description": "Trace a reproducible failure to its causal boundary before changing code."
+    },
+    {
+      "kind": "skill",
+      "id": "debugging-and-error-recovery",
+      "path": "resources/skills/debugging-and-error-recovery/SKILL.md",
+      "description": "Resume, retry, change strategy or escalate using preserved evidence."
+    },
+    {
+      "kind": "skill",
+      "id": "test-driven-development",
+      "path": "resources/skills/test-driven-development/SKILL.md",
+      "description": "Prove a behavior gap with a failing test and the smallest fix."
+    },
+    {
+      "kind": "skill",
+      "id": "code-review-and-quality",
+      "path": "resources/skills/code-review-and-quality/SKILL.md",
+      "description": "Review changes for regressions, boundary failures and missing tests."
+    },
+    {
+      "kind": "skill",
+      "id": "unified-review",
+      "path": "resources/skills/unified-review/SKILL.md",
+      "description": "Choose quick, certify, review or full inspection with honest evidence."
+    },
+    {
+      "kind": "skill",
+      "id": "source-driven-development",
+      "path": "resources/skills/source-driven-development/SKILL.md",
+      "description": "Ground decisions in code and applicable authoritative documentation."
+    },
+    {
+      "kind": "skill",
+      "id": "context-engineering",
+      "path": "resources/skills/context-engineering/SKILL.md",
+      "description": "Build a minimal task context and recover after interruptions."
+    },
+    {
+      "kind": "skill",
+      "id": "security-and-hardening",
+      "path": "resources/skills/security-and-hardening/SKILL.md",
+      "description": "Inspect inputs, authority, dependencies and secret exposure."
+    },
+    {
+      "kind": "skill",
+      "id": "documentation-and-adrs",
+      "path": "resources/skills/documentation-and-adrs/SKILL.md",
+      "description": "Document real interfaces and explicit architecture tradeoffs."
+    },
+    {
+      "kind": "skill",
+      "id": "git-workflow-and-versioning",
+      "path": "resources/skills/git-workflow-and-versioning/SKILL.md",
+      "description": "Preserve unrelated work and separate local commits from publication."
+    },
+    {
+      "kind": "skill",
+      "id": "shipping-and-launch",
+      "path": "resources/skills/shipping-and-launch/SKILL.md",
+      "description": "Assess delivery and recovery without implicit remote side effects."
+    },
+    {
+      "kind": "skill",
+      "id": "performance-optimization",
+      "path": "resources/skills/performance-optimization/SKILL.md",
+      "description": "Measure comparable workloads before selecting an optimization."
+    },
+    {
+      "kind": "skill",
+      "id": "code-simplification",
+      "path": "resources/skills/code-simplification/SKILL.md",
+      "description": "Remove demonstrated complexity while preserving observable behavior."
+    },
+    {
+      "kind": "skill",
+      "id": "session-handoff",
+      "path": "resources/skills/session-handoff/SKILL.md",
+      "description": "Report completed, active, blocked and next work from actual state."
+    },
+    {
+      "kind": "skill",
+      "id": "select-capabilities",
+      "path": "resources/skills/select-capabilities/SKILL.md",
+      "description": "Select relevant capabilities without importing an entire catalog."
+    },
+    {
+      "kind": "skill",
+      "id": "web-research",
+      "path": "resources/skills/web-research/SKILL.md",
+      "description": "Research an explicit question with permission and verified citations."
+    },
+    {
+      "kind": "skill",
+      "id": "resolve-ambiguity",
+      "path": "resources/skills/resolve-ambiguity/SKILL.md",
+      "description": "Resolve consequential unknowns after inspecting existing evidence."
+    },
+    {
+      "kind": "skill",
+      "id": "api-and-interface-design",
+      "path": "resources/skills/api-and-interface-design/SKILL.md",
+      "description": "Design explicit public interfaces before implementation."
+    },
+    {
+      "kind": "skill",
+      "id": "api-design-principles",
+      "path": "resources/skills/api-design-principles/SKILL.md",
+      "description": "Review public HTTP and GraphQL contracts."
+    },
+    {
+      "kind": "skill",
+      "id": "brainstorming",
+      "path": "resources/skills/brainstorming/SKILL.md",
+      "description": "Explore requirements and settle a bounded design."
+    },
+    {
+      "kind": "skill",
+      "id": "ci-cd-and-automation",
+      "path": "resources/skills/ci-cd-and-automation/SKILL.md",
+      "description": "Inspect verification and delivery automation boundaries."
+    },
+    {
+      "kind": "skill",
+      "id": "constraint-driven-development",
+      "path": "resources/skills/constraint-driven-development/SKILL.md",
+      "description": "Map approved constraints to implementation and evidence."
+    },
+    {
+      "kind": "skill",
+      "id": "deprecation-and-migration",
+      "path": "resources/skills/deprecation-and-migration/SKILL.md",
+      "description": "Plan reversible compatibility and stored-data migrations."
+    },
+    {
+      "kind": "skill",
+      "id": "discernment-nudge",
+      "path": "resources/skills/discernment-nudge/SKILL.md",
+      "description": "Challenge weak premises with concrete evidence and consequences."
+    },
+    {
+      "kind": "skill",
+      "id": "doubt-driven-development",
+      "path": "resources/skills/doubt-driven-development/SKILL.md",
+      "description": "Resolve consequential uncertainty without inventing certainty."
+    },
+    {
+      "kind": "skill",
+      "id": "artifact-completeness",
+      "path": "resources/skills/artifact-completeness/SKILL.md",
+      "description": "Preserve complete deliverables and inspect truncated evidence."
+    },
+    {
+      "kind": "skill",
+      "id": "clarify-intent",
+      "path": "resources/skills/clarify-intent/SKILL.md",
+      "description": "Turn initial product intent into a bounded request."
+    },
+    {
+      "kind": "skill",
+      "id": "observability-and-instrumentation",
+      "path": "resources/skills/observability-and-instrumentation/SKILL.md",
+      "description": "Verify real telemetry collection before exposing metrics."
+    },
+    {
+      "kind": "skill",
+      "id": "plan-design-review",
+      "path": "resources/skills/plan-design-review/SKILL.md",
+      "description": "Inspect a settled design for acceptance and execution gaps."
+    },
+    {
+      "kind": "skill",
+      "id": "review-feedback",
+      "path": "resources/skills/review-feedback/SKILL.md",
+      "description": "Evaluate review feedback and batch verified corrections."
+    },
+    {
+      "kind": "skill",
+      "id": "release-notes-one-pager",
+      "path": "resources/skills/release-notes-one-pager/SKILL.md",
+      "description": "Describe actual delivered behavior and upgrade risks."
+    },
+    {
+      "kind": "skill",
+      "id": "review-deep",
+      "path": "resources/skills/review-deep/SKILL.md",
+      "description": "Inspect high-risk changes causally across their boundaries."
+    },
+    {
+      "kind": "skill",
+      "id": "writing-plans",
+      "path": "resources/skills/writing-plans/SKILL.md",
+      "description": "Write settled tasks with exact contracts and verification cases."
+    },
+    {
+      "kind": "rule",
+      "id": "safety",
+      "path": "resources/rules/safety.md",
+      "description": "Authority, scope, no implicit execution and explicit side-effect consent."
+    },
+    {
+      "kind": "rule",
+      "id": "workflow",
+      "path": "resources/rules/workflow.md",
+      "description": "Recorded state, revisions, dependency readiness and interruption recovery."
+    },
+    {
+      "kind": "rule",
+      "id": "evidence",
+      "path": "resources/rules/evidence.md",
+      "description": "Claims must distinguish observation, inference and unexecuted checks."
+    },
+    {
+      "kind": "rule",
+      "id": "review",
+      "path": "resources/rules/review.md",
+      "description": "Independent review or a complete explicit owner waiver."
+    },
+    {
+      "kind": "rule",
+      "id": "api-contract",
+      "path": "resources/rules/api-contract.md",
+      "description": "Document and test actual public behavior and compatibility."
+    },
+    {
+      "kind": "rule",
+      "id": "concurrency-async",
+      "path": "resources/rules/concurrency-async.md",
+      "description": "Bound concurrency and avoid blocking asynchronous runtimes."
+    },
+    {
+      "kind": "rule",
+      "id": "core-engine",
+      "path": "resources/rules/core-engine.md",
+      "description": "Protect invariants and avoid implicit production activation."
+    },
+    {
+      "kind": "rule",
+      "id": "durability",
+      "path": "resources/rules/durability.md",
+      "description": "Make persistence and crash guarantees explicit and testable."
+    },
+    {
+      "kind": "rule",
+      "id": "frontend-web",
+      "path": "resources/rules/frontend-web.md",
+      "description": "Web-specific accessibility, input handling and performance evidence."
+    },
+    {
+      "kind": "rule",
+      "id": "indexes",
+      "path": "resources/rules/indexes.md",
+      "description": "Preserve search/index semantics and exercise update paths."
+    },
+    {
+      "kind": "rule",
+      "id": "js-ecosystem",
+      "path": "resources/rules/js-ecosystem.md",
+      "description": "Follow detected JavaScript package and module conventions."
+    },
+    {
+      "kind": "rule",
+      "id": "mcp-integration",
+      "path": "resources/rules/mcp-integration.md",
+      "description": "Do not confuse tool annotations with consent or isolation."
+    },
+    {
+      "kind": "rule",
+      "id": "memory-budget",
+      "path": "resources/rules/memory-budget.md",
+      "description": "Bound stored context and distinguish registered operations from native calls."
+    },
+    {
+      "kind": "rule",
+      "id": "licensing-and-provenance",
+      "path": "resources/rules/licensing-and-provenance.md",
+      "description": "Preserve provenance and ask for licensing decisions; do not infer them."
+    },
+    {
+      "kind": "rule",
+      "id": "python-bindings",
+      "path": "resources/rules/python-bindings.md",
+      "description": "State ownership, runtime, error and compatibility boundaries."
+    },
+    {
+      "kind": "rule",
+      "id": "query-dsl",
+      "path": "resources/rules/query-dsl.md",
+      "description": "Treat query syntax and matching semantics as public contracts."
+    },
+    {
+      "kind": "rule",
+      "id": "release-ci",
+      "path": "resources/rules/release-ci.md",
+      "description": "Follow the project's actual release process with explicit remote consent."
+    },
+    {
+      "kind": "rule",
+      "id": "server-mcp",
+      "path": "resources/rules/server-mcp.md",
+      "description": "Validate server inputs, outputs and protocol metadata."
+    },
+    {
+      "kind": "reference",
+      "id": "architecture",
+      "path": "resources/references/architecture.md",
+      "description": "Evidence needed to describe a project's actual architecture."
+    },
+    {
+      "kind": "reference",
+      "id": "backlog-format",
+      "path": "resources/references/backlog-format.md",
+      "description": "A portable backlog record and readiness interpretation."
+    },
+    {
+      "kind": "reference",
+      "id": "build-system",
+      "path": "resources/references/build-system.md",
+      "description": "Read manifests without inventing build or verification commands."
+    },
+    {
+      "kind": "reference",
+      "id": "clean-code-clean-architecture",
+      "path": "resources/references/clean-code-clean-architecture.md",
+      "description": "Review clarity and boundaries without arbitrary style scores."
+    },
+    {
+      "kind": "reference",
+      "id": "definition-of-done",
+      "path": "resources/references/definition-of-done.md",
+      "description": "Separate task acceptance, commit readiness and release readiness."
+    },
+    {
+      "kind": "reference",
+      "id": "dev-tools",
+      "path": "resources/references/dev-tools.md",
+      "description": "Optional tools are discovered capabilities, not prerequisites by assumption."
+    },
+    {
+      "kind": "reference",
+      "id": "quality-floor",
+      "path": "resources/references/quality-floor.md",
+      "description": "Preserve approved quality requirements without weakening them to pass."
+    },
+    {
+      "kind": "reference",
+      "id": "frontend-web",
+      "path": "resources/references/frontend-web.md",
+      "description": "Web project evidence and inspection boundaries."
+    },
+    {
+      "kind": "reference",
+      "id": "mcp-tools",
+      "path": "resources/references/mcp-tools.md",
+      "description": "Read-only harness tools and explicit transport boundaries."
+    },
+    {
+      "kind": "reference",
+      "id": "observability-checklist",
+      "path": "resources/references/observability-checklist.md",
+      "description": "Evidence and correlation required for operational claims."
+    },
+    {
+      "kind": "reference",
+      "id": "ocr-review",
+      "path": "resources/references/ocr-review.md",
+      "description": "Separate observed visual/text defects from inaccessible evidence."
+    },
+    {
+      "kind": "reference",
+      "id": "orchestration-patterns",
+      "path": "resources/references/orchestration-patterns.md",
+      "description": "Dependency-aware delegation and failure-aware fan-in."
+    },
+    {
+      "kind": "reference",
+      "id": "performance-checklist",
+      "path": "resources/references/performance-checklist.md",
+      "description": "Record workload, environment, baseline and actual result."
+    },
+    {
+      "kind": "reference",
+      "id": "python-sdk",
+      "path": "resources/references/python-sdk.md",
+      "description": "Python SDK contract and boundary review topics."
+    },
+    {
+      "kind": "reference",
+      "id": "research-modules",
+      "path": "resources/references/research-modules.md",
+      "description": "Derive research areas from the selected repository."
+    },
+    {
+      "kind": "reference",
+      "id": "security-checklist",
+      "path": "resources/references/security-checklist.md",
+      "description": "Inputs, identity, permissions, sensitive data and dependencies."
+    },
+    {
+      "kind": "reference",
+      "id": "ship-runbook",
+      "path": "resources/references/ship-runbook.md",
+      "description": "Delivery preflight and action-specific recovery authorization."
+    },
+    {
+      "kind": "reference",
+      "id": "skills-engineering",
+      "path": "resources/references/skills-engineering.md",
+      "description": "One catalog, selective loading and explicit provenance."
+    },
+    {
+      "kind": "reference",
+      "id": "test-suite",
+      "path": "resources/references/test-suite.md",
+      "description": "Select verification from real scripts and declared acceptance."
+    },
+    {
+      "kind": "reference",
+      "id": "testing-patterns",
+      "path": "resources/references/testing-patterns.md",
+      "description": "Regression, boundary, fault injection and no-write assertions."
+    },
+    {
+      "kind": "reference",
+      "id": "graph-investigation",
+      "path": "resources/references/graph-investigation.md",
+      "description": "Graph-assisted investigation with explicit capability fallback."
+    },
+    {
+      "kind": "reference",
+      "id": "accessibility-checklist",
+      "path": "resources/references/accessibility-checklist.md",
+      "description": "Accessible names, semantics, operation and verified evidence."
+    },
+    {
+      "kind": "reference",
+      "id": "reference-maintenance",
+      "path": "resources/references/reference-maintenance.md",
+      "description": "How to maintain evidence-backed reference material."
+    },
+    {
+      "kind": "profile",
+      "id": "core",
+      "path": "resources/profiles/core.json",
+      "description": "General engineering; no assumed stack or external tool."
+    },
+    {
+      "kind": "profile",
+      "id": "web",
+      "path": "resources/profiles/web.json",
+      "description": "Opt-in web interface inspection and performance."
+    },
+    {
+      "kind": "profile",
+      "id": "rust",
+      "path": "resources/profiles/rust.json",
+      "description": "Opt-in Rust ownership and asynchronous-runtime concerns."
+    },
+    {
+      "kind": "profile",
+      "id": "python",
+      "path": "resources/profiles/python.json",
+      "description": "Opt-in Python SDK and binding concerns."
+    },
+    {
+      "kind": "profile",
+      "id": "database",
+      "path": "resources/profiles/database.json",
+      "description": "Opt-in persistence, indexing and query semantics."
+    },
+    {
+      "kind": "reference",
+      "id": "task-system",
+      "path": "resources/references/task-system.md",
+      "description": "Task lifecycle, plans and preserved continuation state."
+    }
+  ],
+  "aliases": [
+    {
+      "kind": "command",
+      "id": "pipeline",
+      "mode": "plan",
+      "default": true,
+      "target": "plan-work",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "pipeline",
+      "mode": "task",
+      "default": false,
+      "target": "implement-task",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "pipeline",
+      "mode": "run",
+      "default": false,
+      "target": "coordinate-plan",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "pipeline",
+      "mode": "interactive",
+      "default": false,
+      "target": "report-status",
+      "targetMode": "default",
+      "parameters": {
+        "interaction": "guided"
+      }
+    },
+    {
+      "kind": "command",
+      "id": "spec",
+      "mode": "default",
+      "default": true,
+      "target": "specify-change",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "backlog",
+      "mode": "default",
+      "default": true,
+      "target": "triage-work",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "status",
+      "mode": "default",
+      "default": true,
+      "target": "report-status",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "audit",
+      "mode": "quick",
+      "default": true,
+      "target": "verify-work",
+      "targetMode": "quick"
+    },
+    {
+      "kind": "command",
+      "id": "audit",
+      "mode": "certify",
+      "default": false,
+      "target": "verify-work",
+      "targetMode": "certify"
+    },
+    {
+      "kind": "command",
+      "id": "audit",
+      "mode": "review",
+      "default": false,
+      "target": "review-change",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "audit",
+      "mode": "full",
+      "default": false,
+      "target": "audit-project",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "harness",
+      "mode": "default",
+      "default": true,
+      "target": "audit-harness",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "research",
+      "mode": "module",
+      "default": true,
+      "target": "investigate",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "research",
+      "mode": "synthesis",
+      "default": false,
+      "target": "compare-options",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "ship",
+      "mode": "default",
+      "default": true,
+      "target": "assess-release",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "rollback",
+      "mode": "default",
+      "default": true,
+      "target": "plan-recovery",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "code-simplify",
+      "mode": "default",
+      "default": true,
+      "target": "simplify-code",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "codeGraph",
+      "mode": "default",
+      "default": true,
+      "target": "analyze-structure",
+      "targetMode": "default"
+    },
+    {
+      "kind": "command",
+      "id": "cleanCA",
+      "mode": "default",
+      "default": true,
+      "target": "review-change",
+      "targetMode": "default",
+      "parameters": {
+        "focus": "architecture"
+      }
+    },
+    {
+      "kind": "command",
+      "id": "webperf",
+      "mode": "quick",
+      "default": true,
+      "target": "audit-web-performance",
+      "targetMode": "quick"
+    },
+    {
+      "kind": "command",
+      "id": "webperf",
+      "mode": "deep",
+      "default": false,
+      "target": "audit-web-performance",
+      "targetMode": "deep"
+    },
+    {
+      "kind": "skill",
+      "id": "progreso",
+      "target": "session-handoff"
+    },
+    {
+      "kind": "skill",
+      "id": "idea-refine",
+      "target": "clarify-intent"
+    },
+    {
+      "kind": "skill",
+      "id": "interview-me",
+      "target": "resolve-ambiguity"
+    },
+    {
+      "kind": "skill",
+      "id": "full-output-enforcement",
+      "target": "artifact-completeness"
+    },
+    {
+      "kind": "skill",
+      "id": "using-agent-skills",
+      "target": "select-capabilities"
+    },
+    {
+      "kind": "skill",
+      "id": "pr-feedback-quality-gate",
+      "target": "review-feedback"
+    },
+    {
+      "kind": "skill",
+      "id": "campaign-executor",
+      "target": "plan-coordination"
+    },
+    {
+      "kind": "rule",
+      "id": "open-core-licensing",
+      "target": "licensing-and-provenance"
+    },
+    {
+      "kind": "reference",
+      "id": "REFERENCE-SYNTHESIS",
+      "target": "reference-maintenance"
+    },
+    {
+      "kind": "reference",
+      "id": "floor-guard",
+      "target": "quality-floor"
+    },
+    {
+      "kind": "reference",
+      "id": "understand-anything",
+      "target": "graph-investigation"
+    }
+  ]
+}

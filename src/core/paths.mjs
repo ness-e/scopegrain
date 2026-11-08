@@ -116,6 +116,14 @@ export function isInside(rootAbs, abs) {
 // Reject links and non-directory ancestors in every existing segment between
 // rootAbs (exclusive) and absPath. The leaf itself is checked by callers.
 export function assertNoSymlinkChain(rootAbs, absPath) {
+  const root = lstatOrNull(rootAbs);
+  if (root?.isSymbolicLink()) {
+    throw err('SYMLINK_REJECTED',
+      `approved root was replaced with a symlink/junction: ${rootAbs}`);
+  }
+  if (root && !root.isDirectory()) {
+    throw err('FILE_ANCESTOR', `approved root is not a directory: ${rootAbs}`);
+  }
   const rel = path.relative(rootAbs, absPath);
   if (rel === '') return;
   const segments = rel.split(path.sep);

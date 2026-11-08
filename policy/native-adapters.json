@@ -5,7 +5,15 @@
   "writeHostRoots": false,
   "installHooks": false,
   "installPlugins": false,
-  "readOnlyAgentIds": ["architect", "security-auditor", "researcher", "reviewer", "harness-maintainer"],
+  "readOnlyAgentIds": [
+    "architect",
+    "security-auditor",
+    "researcher",
+    "reviewer",
+    "harness-maintainer",
+    "requirements-analyst",
+    "release-engineer"
+  ],
   "hosts": {
     "claude": {
       "skillRoot": ".claude/skills",
@@ -17,7 +25,10 @@
       "readOnlyAgentFrontmatter": "tools:\n  - Read\n  - Grep\n  - Glob\n",
       "invocation": "/tasksystem-NAME",
       "permissionScope": "Selected read-only agent tools only; not path isolation or MCP authentication.",
-      "sources": ["https://code.claude.com/docs/en/skills", "https://code.claude.com/docs/en/sub-agents"]
+      "sources": [
+        "https://code.claude.com/docs/en/skills",
+        "https://code.claude.com/docs/en/sub-agents"
+      ]
     },
     "codex": {
       "skillRoot": ".agents/skills",
@@ -29,7 +40,11 @@
       "readOnlyAgentFrontmatter": "sandbox_mode = \"read-only\"\n",
       "invocation": "$tasksystem-NAME",
       "permissionScope": "Read-only filesystem role sandbox; does not certify MCP side effects or network denial.",
-      "sources": ["https://github.com/openai/codex/blob/main/codex-rs/ext/skills/src/host_roots.rs", "https://github.com/openai/codex/blob/main/codex-rs/agent-roles/src/loader.rs", "https://github.com/openai/codex/blob/main/codex-rs/core/src/agent/role_tests.rs"]
+      "sources": [
+        "https://github.com/openai/codex/blob/main/codex-rs/ext/skills/src/host_roots.rs",
+        "https://github.com/openai/codex/blob/main/codex-rs/agent-roles/src/loader.rs",
+        "https://github.com/openai/codex/blob/main/codex-rs/core/src/agent/role_tests.rs"
+      ]
     },
     "opencode": {
       "skillRoot": ".opencode/skills",
@@ -38,11 +53,15 @@
       "agentRoot": ".opencode/agents",
       "agentFormat": "markdown",
       "commandFrontmatter": "",
-      "agentFrontmatter": "mode: subagent\n",
-      "readOnlyAgentFrontmatter": "permissions:\n  - action: edit\n    resource: \"*\"\n    effect: deny\n  - action: shell\n    resource: \"*\"\n    effect: deny\n",
+      "agentFrontmatter": "",
+      "readOnlyAgentFrontmatter": "",
       "invocation": "/tasksystem-NAME",
-      "permissionScope": "OpenCode V2 edit and shell denial only. V1 formats differ.",
-      "sources": ["https://opencode.ai/docs/commands/", "https://opencode.ai/docs/agents/", "https://opencode.ai/docs/mcp-servers/"]
+      "permissionScope": "Variant-specific permission proposals; choose V1 or V2 after checking the host version. No runtime enforcement is certified.",
+      "sources": [
+        "https://opencode.ai/docs/commands/",
+        "https://opencode.ai/docs/agents/",
+        "https://opencode.ai/docs/mcp-servers/"
+      ]
     },
     "devin": {
       "skillRoot": ".devin/skills",
@@ -54,7 +73,26 @@
       "readOnlyAgentFrontmatter": "allowed-tools:\n  - read\n  - grep\n  - glob\n",
       "invocation": "/tasksystem-NAME",
       "permissionScope": "Custom subagent tool allowlist only; inline skill allowed-tools means auto-approval, not restriction.",
-      "sources": ["https://docs.devin.ai/cli/extensibility/skills/creating-skills.md", "https://docs.devin.ai/cli/subagents.md"]
+      "sources": [
+        "https://docs.devin.ai/cli/extensibility/skills/creating-skills.md",
+        "https://docs.devin.ai/cli/subagents.md"
+      ]
+    },
+    "antigravity": {
+      "skillRoot": ".agents/skills",
+      "commandFormat": "skill",
+      "agentRoot": ".agents/agents",
+      "agentFormat": "markdown",
+      "commandFrontmatter": "",
+      "agentFrontmatter": "",
+      "readOnlyAgentFrontmatter": "",
+      "invocation": "/tasksystem-NAME",
+      "permissionScope": "Variant selection required. Shared .agents paths are not host isolation. No native runtime has been certified.",
+      "sources": [
+        "https://antigravity.google/docs/skills",
+        "https://antigravity.google/docs/subagents",
+        "https://antigravity.google/docs/mcp"
+      ]
     }
   }
 }

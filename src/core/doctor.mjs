@@ -1,14 +1,16 @@
 // Read-only health check: validates config, paths, generated file CONTENTS,
 // installed templates, discovery freshness and warnings. Executes nothing
 // and never asserts that a host or service is installed.
-import fs from 'node:fs';
 import path from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { lstatOrNull, readFileLimited } from './fsx.mjs';
 import { resolveInside } from './paths.mjs';
 import { PATH_KEYS, configDirOf } from './config.mjs';
 import { inspectProject } from '../discovery/inspect.mjs';
 import { buildInitPlan, INSTALL_ROOT } from './bootstrap.mjs';
-import { checkCatalog } from './catalog.mjs';
+import {
+  catalogFiles, checkCatalog, loadWorkspaceCatalog,
+} from './catalog.mjs';
 import { loadLimits } from './policy.mjs';
 
 const REQUIRED_TEMPLATES = [
@@ -17,9 +19,6 @@ const REQUIRED_TEMPLATES = [
   'entrypoint.md',
   'project-instructions.md',
   'task-contract.md',
-  'skills/project-onboarding/SKILL.md',
-  'skills/contract-execution/SKILL.md',
-  'skills/independent-review/SKILL.md',
 ];
 
 function statusOf(abs) {
@@ -30,13 +29,23 @@ function statusOf(abs) {
   return 'file';
 }
 
-function bytesEqualOnDisk(abs, content) {
+// Exact byte equality; allowCRLF additionally accepts the CRLF form that
+// core.autocrlf produces for root-level files unreachable by the nested
+// configDir .gitattributes. latin1 keeps every byte — never trim or bare-CR.
+function bytesEqualOnDisk(abs, content, { allowCRLF = false } = {}) {
   const st = lstatOrNull(abs);
   if (!st || !st.isFile() || st.isSymbolicLink()) return false;
   const incoming = Buffer.isBuffer(content) ? content : Buffer.from(content);
-  const limited = readFileLimited(abs, incoming.length);
+  const limited = readFileLimited(abs,
+    allowCRLF
+      ? Math.min(loadLimits().maxDocumentBytes, incoming.length * 2)
+      : incoming.length);
   if (limited.exceeded) return false;
-  return limited.content.equals(incoming);
+  if (limited.content.equals(incoming)) return true;
+  if (!allowCRLF) return false;
+  const lf = (b) => Buffer.from(
+    b.toString('latin1').replace(/\r\n/g, '\n'), 'latin1');
+  return lf(limited.content).equals(lf(incoming));
 }
 
 // ctx: {projectRoot, configPath, configDir, config} from resolveContext.
@@ -63,6 +72,48 @@ export function runDoctor(ctx, opts = {}) {
   } else {
     push('catalog', false,
       cat.issues.map((i) => i.message).join(' | '));
+  }
+
+  // Workspace snapshot is a SEPARATE check from the installation catalog:
+  // an old-but-valid pin is an upgrade notice, never corruption.
+  let workspace = null;
+  let upgradeAvailable = null;
+  try {
+    workspace = loadWorkspaceCatalog({ projectRoot, configDir: ctx.configDir });
+    push('workspace-catalog', true,
+      `snapshot integrity ${workspace.integrity} (${workspace.entries.length} entries)`);
+    if (workspace.snapshotVersion === 1) {
+      push('workspace-catalog', false,
+        'legacy-unpinned snapshot: no sha256 coverage; upgrade recommended');
+    }
+  } catch (e) {
+    push('workspace-catalog', false, `${e.code}: ${e.message}`);
+  }
+  if (workspace && workspace.snapshotVersion === 2 && cat.ok) {
+    try {
+      const expectedFiles = catalogFiles({ installRoot });
+      const expectedManifest = JSON.parse(expectedFiles.find(
+        (f) => f.rel === 'catalog.json').content);
+      const snapshotManifest = {
+        schemaVersion: workspace.snapshotVersion,
+        entries: workspace.entries.map((e) => ({
+          ...e, sha256: e.sha256.toLowerCase(),
+        })),
+        aliases: workspace.aliases,
+      };
+      // Compare both directions and include metadata/aliases, not only
+      // hashes of entries that still exist in the workspace.
+      upgradeAvailable = !isDeepStrictEqual(
+        snapshotManifest, expectedManifest);
+      if (upgradeAvailable) {
+        push('upgrade', false,
+          'snapshot differs from this installation; pin integrity is valid, explicit review required');
+      }
+    } catch (e) {
+      push('upgrade', false, `cannot compare versions: ${e.message}`);
+    }
+  } else if (workspace && workspace.snapshotVersion === 1) {
+    upgradeAvailable = null;
   }
 
   // Required installed templates must exist to produce/verify generated files.
@@ -100,7 +151,13 @@ export function runDoctor(ctx, opts = {}) {
     } else {
       let rec;
       try {
-        rec = JSON.parse(fs.readFileSync(discoveryAbs, 'utf8'));
+        const limited = readFileLimited(
+          discoveryAbs, loadLimits().maxDocumentBytes);
+        if (limited.exceeded) {
+          push('discovery', false, `${discoveryRel} exceeds document limit`);
+        } else {
+          rec = JSON.parse(limited.content.toString('utf8'));
+        }
       } catch {
         push('discovery', false, `${discoveryRel} contains malformed JSON`);
       }
@@ -125,12 +182,19 @@ export function runDoctor(ctx, opts = {}) {
       projectRoot,
       configRel: configPath,
       config,
-      configContent: fs.readFileSync(resolveInside(projectRoot, configPath)),
+      configContent: (() => {
+        const l = readFileLimited(resolveInside(projectRoot, configPath),
+          loadLimits().maxDocumentBytes);
+        return l.exceeded ? undefined : l.content;
+      })(),
       templatesDir,
       installRoot,
       discovery: null,
       discoveryContent: (st => (st && st.isFile() && !st.isSymbolicLink()
-        ? fs.readFileSync(discoveryAbs) : undefined))(lstatOrNull(discoveryAbs)),
+        ? (() => {
+          const l = readFileLimited(discoveryAbs, loadLimits().maxDocumentBytes);
+          return l.exceeded ? undefined : l.content;
+        })() : undefined))(lstatOrNull(discoveryAbs)),
     });
     expected = plan.files;
   } catch (e) {
@@ -142,8 +206,24 @@ export function runDoctor(ctx, opts = {}) {
     const s = statusOf(abs);
     if (s !== 'file') {
       push('generated', false, `${f.rel} -> ${s}`);
-    } else if (!bytesEqualOnDisk(abs, f.content)) {
-      push('generated', false, `${f.rel} -> content differs from generated fragment`);
+    } else {
+      let same;
+      try {
+        same = bytesEqualOnDisk(abs, f.content, {
+          allowCRLF: f.rel === 'AGENTS.md' || f.rel === 'CLAUDE.md',
+        });
+      } catch {
+        push('generated', false, `${f.rel} -> read failed during compare`);
+        continue;
+      }
+      if (!same) {
+        // When the workspace snapshot is healthy V2 and this difference is
+        // version-only, label it upgrade-or-local-edit, not corruption.
+        const label = upgradeAvailable
+          ? 'upgrade-or-local-edit'
+          : 'content differs from generated fragment';
+        push('generated', false, `${f.rel} -> ${label}`);
+      }
     }
   }
   if (expected.length > 0
@@ -173,6 +253,7 @@ export function runDoctor(ctx, opts = {}) {
     schemaVersion: 1,
     status: ok ? 'ready' : 'needs-attention',
     changedDiscovery,
+    upgradeAvailable,
     checks,
     warnings,
   };
