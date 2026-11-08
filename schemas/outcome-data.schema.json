@@ -1,0 +1,24 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"urn:tasksystem:outcome-data:v1",
+  "title":"Bound outcome evidence data",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schemaVersion","taskId","taskRevision","taskDigest","specId","specDigest","designDigest","planDigest","verificationDigest"],
+  "properties":{
+    "schemaVersion":{"const":1},
+    "taskId":{"$ref":"#/$defs/uuid"},
+    "taskRevision":{"type":"integer","minimum":0,"maximum":9007199254740991},
+    "taskDigest":{"$ref":"#/$defs/digest"},
+    "specId":{"$ref":"#/$defs/uuid"},
+    "specDigest":{"$ref":"#/$defs/digest"},
+    "designDigest":{"$ref":"#/$defs/digest"},
+    "planDigest":{"oneOf":[{"type":"null"},{"$ref":"#/$defs/digest"}]},
+    "verificationDigest":{"$ref":"#/$defs/digest"}
+  },
+  "$defs":{
+    "uuid":{"type":"string","pattern":"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"},
+    "digest":{"type":"string","pattern":"^[0-9a-f]{64}$"}
+  },
+  "description":"Data inside report V2. Runtime binds it to a real REVIEW task, current specification and checks/coverage digest, excluding outcomeEvidenceId to prevent self-reference. It does not authenticate that observations are true."
+}

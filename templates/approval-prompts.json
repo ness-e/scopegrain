@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "es": {
+    "question": "¿Apruebas el contenido revisado de {kind}/{id}, identificado por {digest}, dentro del alcance mostrado?",
+    "notice": "La respuesta registra intencion, no autentica identidad ni autoriza instalaciones, publicacion o efectos no enumerados.",
+    "options": [
+      {"id":"approve","label":"Aprobar","description":"Apruebo este contenido y alcance revisados; los efectos externos siguen requiriendo autorizacion especifica."},
+      {"id":"reject","label":"Rechazar","description":"No apruebo este contenido; el trabajo afectado queda bloqueado."}
+    ]
+  },
+  "en": {
+    "question": "Do you approve the reviewed {kind}/{id} content identified by {digest} within the displayed scope?",
+    "notice": "This response records intent; it does not authenticate identity or authorize installation, publication or unlisted effects.",
+    "options": [
+      {"id":"approve","label":"Approve","description":"Approve this reviewed content and scope; external effects still require specific authorization."},
+      {"id":"reject","label":"Reject","description":"Do not approve this content; the affected work remains blocked."}
+    ]
+  }
+}

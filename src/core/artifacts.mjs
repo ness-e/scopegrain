@@ -8,13 +8,43 @@ import { err } from './errors.mjs';
 import { lstatOrNull, readFileLimited } from './fsx.mjs';
 import { assertDestination, resolveInside } from './paths.mjs';
 import { loadLimits, loadOnboardingDefaults } from './policy.mjs';
+import { canonicalDigest } from './digests.mjs';
+import {
+  validateDesignData, validateSpecificationData,
+} from './specification-data.mjs';
+import { validateOutcomeData } from './outcome-data.mjs';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ARTIFACT_INPUT_KEYS = new Set(['title', 'body', 'references']);
 const ARTIFACT_KEYS = new Set([
   'schemaVersion', 'id', 'kind', 'title', 'body', 'references', 'createdAt',
+  'data',
 ]);
+// Kinds that may carry typed V2 data. design is V2-only (no legacy mode).
+const V2_KINDS = new Set(['spec', 'design', 'report']);
+
+// Graceful template load: a missing/malformed authored renderer degrades
+// to a TaskError at use time, never an import-time crash.
+let renderFn = null;
+let renderError = null;
+try {
+  ({ renderSpecification: renderFn } = await import(
+    '../../templates/render-specification.mjs'));
+  if (typeof renderFn !== 'function') {
+    throw new Error('renderSpecification is not a function');
+  }
+} catch (e) {
+  renderError = e;
+}
+
+export function renderSpecification(title, data) {
+  if (renderError) {
+    throw err('ARTIFACT_MALFORMED',
+      `specification renderer unavailable: ${renderError.message}`);
+  }
+  return renderFn(title, data);
+}
 
 // Kind -> destination under configured paths. reviews nest inside reports
 // per policy/onboarding-defaults.json (reviewSubdirectory). A Map lookup
@@ -23,6 +53,7 @@ export function artifactDirRel(ctx, kind) {
   const p = ctx.config.paths;
   const dirs = new Map([
     ['spec', `${p.plans}/specs`],
+    ['design', `${p.plans}/designs`],
     ['report', p.reports],
     ['research', p.research],
     ['decision', p.decisions],
@@ -58,8 +89,18 @@ function validateReferences(ctx, references) {
 }
 
 // Read-only artifact plan: returns {artifact, file} for exclusive apply.
-export function prepareArtifact(ctx, kind, input) {
+// The fourth {data} argument is internal to typed factories (specification
+// /design/report V2); the generic public input stays closed at three keys.
+export function prepareArtifact(ctx, kind, input, { data } = {}) {
   const dirRel = artifactDirRel(ctx, kind);
+  if (kind === 'design' && data === undefined) {
+    throw err('INVALID_ARTIFACT',
+      'design artifacts require structured V2 data; no legacy form exists');
+  }
+  if (data !== undefined && !V2_KINDS.has(kind)) {
+    throw err('INVALID_ARTIFACT',
+      `artifact kind '${kind}' does not accept typed data`);
+  }
   if (input === null || typeof input !== 'object' || Array.isArray(input)) {
     throw err('INVALID_ARTIFACT', 'artifact input must be an object');
   }
@@ -69,7 +110,7 @@ export function prepareArtifact(ctx, kind, input) {
     }
   }
   const artifact = {
-    schemaVersion: 1,
+    schemaVersion: data === undefined ? 1 : 2,
     id: crypto.randomUUID(),
     kind,
     title: requireNonEmpty(input.title, 'title'),
@@ -77,6 +118,12 @@ export function prepareArtifact(ctx, kind, input) {
     references: validateReferences(ctx, input.references),
     createdAt: new Date().toISOString(),
   };
+  if (data !== undefined) artifact.data = data;
+  // Validate the constructed record BEFORE serialization: malformed typed
+  // data, bad scope/links or binding drift never reach a file plan.
+  validateArtifactShape(artifact, kind, 'prepared artifact');
+  validateStoredReferences(ctx, artifact, 'prepared artifact');
+  validateArtifactBindings(ctx, artifact, 'prepared artifact');
   const rel = `${dirRel}/${artifact.id}.json`;
   const content = JSON.stringify(artifact, null, 2) + '\n';
   if (Buffer.byteLength(content, 'utf8') > loadLimits().maxDocumentBytes) {
@@ -102,7 +149,7 @@ export function validateArtifactShape(a, kind, label = 'artifact') {
       throw err('ARTIFACT_MALFORMED', `${label} has unknown key '${k}'`);
     }
   }
-  if (a.schemaVersion !== 1 || !UUID_RE.test(a.id || '')
+  if (!UUID_RE.test(a.id || '')
       || a.kind !== kind
       || typeof a.title !== 'string' || a.title.trim() === ''
       || typeof a.body !== 'string' || a.body.trim() === ''
@@ -111,8 +158,53 @@ export function validateArtifactShape(a, kind, label = 'artifact') {
       || !isCanonicalTime(a.createdAt)) {
     throw err('ARTIFACT_MALFORMED', `${label} has invalid fields`);
   }
+  // Version/data coherence is structural, not a warning: V1 forbids data,
+  // V2 requires typed data on spec/design/report only.
+  if (a.schemaVersion === 1) {
+    if (a.data !== undefined) {
+      throw err('ARTIFACT_MALFORMED',
+        `${label}: schemaVersion 1 may not carry typed data`);
+    }
+    if (kind === 'design') {
+      throw err('ARTIFACT_MALFORMED',
+        `${label}: design has no legacy V1 form`);
+    }
+  } else if (a.schemaVersion === 2) {
+    if (!V2_KINDS.has(kind)) {
+      throw err('ARTIFACT_MALFORMED',
+        `${label}: kind '${kind}' may not be schemaVersion 2`);
+    }
+    if (a.data === undefined) {
+      throw err('ARTIFACT_MALFORMED',
+        `${label}: schemaVersion 2 requires typed data`);
+    }
+    validateArtifactData(a, label);
+  } else {
+    throw err('ARTIFACT_MALFORMED',
+      `${label}: schemaVersion must be 1 or 2, got ${a.schemaVersion}`);
+  }
   return a;
 }
+
+// Typed payload per kind, plus renderer coherence for specifications: the
+// stored body must equal the deterministic materialization of data.
+function validateArtifactData(a, label) {
+  if (a.kind === 'spec') {
+    const data = validateSpecificationData(a.data, `${label}.data`,
+      { stored: true });
+    if (a.body !== renderSpecification(a.title, data)) {
+      throw err('ARTIFACT_MALFORMED',
+        `${label}.body does not match the rendered specification data`);
+    }
+    a.data = data;
+  } else if (a.kind === 'design') {
+    a.data = validateDesignData(a.data, `${label}.data`);
+  } else if (a.kind === 'report') {
+    a.data = validateOutcomeData(a.data, `${label}.data`);
+  }
+}
+
+
 
 // Canonical timestamp: parses AND round-trips through toISOString.
 export function isCanonicalTime(v) {
@@ -129,6 +221,13 @@ function validateStoredReferences(ctx, a, label) {
         `${label} reference is not canonical: ${r}`);
     }
     resolveInside(ctx.projectRoot, r, `${label}.references`);
+  }
+  // V2 spec data.scope is containment-checked on read as well as prepare —
+  // a junction swapped in after prepare cannot smuggle outside paths.
+  if (a.kind === 'spec' && a.data !== undefined) {
+    for (const s of a.data.scope) {
+      resolveInside(ctx.projectRoot, s, `${label}.data.scope`);
+    }
   }
 }
 
@@ -167,7 +266,24 @@ export function getArtifact(ctx, kind, id) {
   if (a.id.toLowerCase() !== id.toLowerCase()) {
     throw err('ARTIFACT_MALFORMED', `artifact id does not match filename`);
   }
+  validateArtifactBindings(ctx, a, `artifact ${id}`);
   return a;
+}
+
+// Design V2 foreign-key check, shared by prepare (pre-serialization) and
+// get: the referenced spec must be a real V2 structured artifact AND hash
+// to the recorded digest — one bounded hop, no cycle.
+function validateArtifactBindings(ctx, a, label) {
+  if (a.kind !== 'design' || a.data === undefined) return;
+  const spec = getArtifact(ctx, 'spec', a.data.specId);
+  if (spec.schemaVersion !== 2 || spec.data === undefined) {
+    throw err('SPEC_STRUCTURED_REQUIRED',
+      `${label} requires a structured V2 spec, got ${a.data.specId}`);
+  }
+  if (canonicalDigest(spec) !== a.data.specDigest) {
+    throw err('ARTIFACT_DRIFT',
+      `${label} specDigest no longer matches spec ${a.data.specId}`);
+  }
 }
 
 export function listArtifacts(ctx, kind) {
