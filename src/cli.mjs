@@ -3,7 +3,7 @@
 import path from 'node:path';
 import readline from 'node:readline/promises';
 import { err, toErrorPayload } from './core/errors.mjs';
-import { DEFAULT_CONFIG_PATH, DEFAULT_PATH_PROPOSALS, KNOWN_HOSTS, PATH_KEYS, VERSIONING_KEYS, loadConfig } from './core/config.mjs';
+import { DEFAULT_CONFIG_PATH, DEFAULT_PATH_PROPOSALS, KNOWN_HOSTS, PATH_KEYS, VERSIONING_KEYS, loadConfig, validateMethodologyMode } from './core/config.mjs';
 import { resolveContext } from './core/context.mjs';
 import { resolveProjectRoot } from './core/paths.mjs';
 import { prepareInit, applyPlan, preflightPlan } from './core/bootstrap.mjs';
@@ -13,7 +13,7 @@ import { createTask, getTask, listTasks } from './core/tasks.mjs';
 import { transitionTask, checkAction } from './core/transition.mjs';
 import { readFileLimited } from './core/fsx.mjs';
 import fs from 'node:fs';
-import { loadLimits } from './core/policy.mjs';
+import { loadLimits, loadMethodologyPolicy } from './core/policy.mjs';
 import { checkCatalog, getResource, legacyGet, legacyList, loadCatalog, loadWorkspaceCatalog } from './core/catalog.mjs';
 import { applyResourceRestore, diagnoseResource, findResources, prepareResourceRestore } from './core/resource-recovery.mjs';
 import { buildWorkflowPacket } from './core/workflows.mjs';
@@ -260,6 +260,22 @@ async function askInteractive(io, projectRoot, configFlag, existing) {
   const hostsRaw = await io.ask(`Anfitriones (${hostList})`,
     existing ? existing.hosts.join(',') : hostList);
   answers.hosts = hostsRaw.split(',').map((h) => h.trim()).filter(Boolean);
+  // Methodology question: existing normalized mode wins, otherwise the
+  // authored interactive default (organic-sdd). Re-prompt on invalid.
+  const existingMode = existing
+    ? validateMethodologyMode(existing.methodology) : null;
+  const modeDefault = existingMode
+    ?? loadMethodologyPolicy().interactiveDefault;
+  for (;;) {
+    const reply = (await io.ask(
+      'Metodologia: manual (V1), organic-sdd (proporcional), sdd (formal)',
+      modeDefault)).trim();
+    if (loadMethodologyPolicy().modes.includes(reply)) {
+      answers.methodology = reply;
+      break;
+    }
+    io.stderr('Metodo invalido: use manual, organic-sdd o sdd.');
+  }
   const configRel = await io.ask('Ruta de configuracion',
     configFlag || DEFAULT_CONFIG_PATH);
   answers.paths = {};
@@ -291,6 +307,7 @@ function planJson(prepared) {
       commands: prepared.discovery.commands,
       fingerprint: prepared.discovery.fingerprint,
     },
+    methodology: prepared.config.methodology,
     warnings: [
       ...(prepared.warnings ?? []),
       ...(prepared.discovery.warnings ?? []),

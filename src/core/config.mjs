@@ -10,7 +10,8 @@ import {
   resolveInside,
 } from './paths.mjs';
 
-import { loadLimits, loadOnboardingDefaults } from './policy.mjs';
+import { loadLimits, loadMethodologyPolicy, loadOnboardingDefaults }
+  from './policy.mjs';
 
 export const KNOWN_HOSTS = ['claude', 'codex', 'opencode', 'devin', 'antigravity'];
 export const LOCALES = ['es', 'en'];
@@ -63,11 +64,29 @@ export function validateVersioning(value, label = 'versioning') {
   return out;
 }
 
-const ANSWER_KEYS = new Set(['name', 'locale', 'hosts', 'paths', 'versioning']);
+const ANSWER_KEYS = new Set([
+  'name', 'locale', 'hosts', 'paths', 'versioning', 'methodology']);
 const CONFIG_KEYS = new Set([
   'schemaVersion', 'project', 'locale', 'hosts', 'paths', 'verification',
-  'discovery', 'versioning',
+  'discovery', 'versioning', 'methodology',
 ]);
+
+// Methodology mode: undefined means the authored legacy default (manual);
+// anything else must be an actual string naming a policy mode. Rejects
+// null, non-strings, unknown strings, case variants and sdd-outcome — no
+// inference, aliases or implicit migration of stored bytes.
+export function validateMethodologyMode(value, label = 'methodology') {
+  const modes = loadMethodologyPolicy().modes;
+  if (value === undefined) {
+    return loadMethodologyPolicy().legacyDefault;
+  }
+  if (typeof value !== 'string' || !modes.includes(value)) {
+    const shown = typeof value === 'string' ? `, got ${value}` : '';
+    throw err('INVALID_METHODOLOGY_MODE',
+      `${label} must be one of ${modes.join(', ')}${shown}`);
+  }
+  return value;
+}
 
 function rejectUnknownKeys(obj, allowed, label) {
   if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
@@ -129,7 +148,7 @@ export function validateArtifactPaths(paths) {
 export function validateAnswers(answers) {
   rejectUnknownKeys(answers, ANSWER_KEYS, 'answers');
   for (const key of ANSWER_KEYS) {
-    if (key === 'versioning') continue; // optional field
+    if (key === 'versioning' || key === 'methodology') continue; // optional
     if (!(key in answers)) {
       throw err('INVALID_ANSWERS', `answers is missing required key '${key}'`);
     }
@@ -140,6 +159,8 @@ export function validateAnswers(answers) {
     hosts: validateHosts(answers.hosts),
     paths: validateArtifactPaths(answers.paths),
     versioning: validateVersioning(answers.versioning, 'answers.versioning'),
+    methodology: validateMethodologyMode(
+      answers.methodology, 'answers.methodology'),
   };
 }
 
@@ -208,6 +229,7 @@ export function createConfig(projectRoot, answers, discovery) {
     paths: a.paths,
     verification: { mode: 'manual', commands: [] },
     versioning: a.versioning,
+    methodology: a.methodology,
     discovery: {
       fingerprint: typeof d.fingerprint === 'string' ? d.fingerprint : '',
       stacks: Array.isArray(d.stacks) ? d.stacks : [],
@@ -228,6 +250,8 @@ export function validateConfigObject(config) {
   }
   validateLocale(config.locale);
   validateHosts(config.hosts);
+  config.methodology = validateMethodologyMode(
+    config.methodology, 'config.methodology');
   validateArtifactPaths(config.paths);
   rejectUnknownKeys(
     config.verification, new Set(['mode', 'commands']), 'config.verification');
@@ -281,7 +305,9 @@ export function assertAnswersMatchConfig(answers, config) {
   const sameVersioning = VERSIONING_KEYS.every(
     (k) => a.versioning[k] === config.versioning[k]);
   if (a.name !== config.project.name || a.locale !== config.locale
-      || !sameHosts || !samePaths || !sameVersioning) {
+      || !sameHosts || !samePaths || !sameVersioning
+      || validateMethodologyMode(config.methodology, 'config.methodology')
+        !== a.methodology) {
     throw err('INIT_CONFLICT',
       'existing config differs from the supplied answers; reconcile manually');
   }

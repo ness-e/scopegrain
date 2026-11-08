@@ -1,7 +1,8 @@
 {
   "name": "mi-proyecto",
   "locale": "es",
-  "hosts": ["claude", "codex", "opencode", "devin"],
+  "hosts": ["claude", "codex", "opencode", "devin", "antigravity"],
+  "methodology": "organic-sdd",
   "paths": {
     "plans": ".tasksystem/plans",
     "tasks": ".tasksystem/tasks",

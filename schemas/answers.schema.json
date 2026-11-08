@@ -13,6 +13,10 @@
       "uniqueItems": true,
       "items": {"enum": ["claude", "codex", "opencode", "devin", "antigravity"]}
     },
+    "methodology": {
+      "enum": ["manual", "organic-sdd", "sdd"],
+      "description": "Optional. Absent means legacy manual; interactive new projects propose organic-sdd."
+    },
     "paths": {
       "type": "object",
       "additionalProperties": false,

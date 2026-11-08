@@ -16,6 +16,7 @@ import {
   classifyWork, normalizeScenarioRefs, validateMethodologyData,
 } from './methodology-data.mjs';
 import { validateSpecificationItemId } from './specification-data.mjs';
+import { validateMethodologyMode } from './config.mjs';
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -326,7 +327,8 @@ export function normalizeTaskInput(ctx, input) {
   for (const s of cleanScope) {
     resolveInside(ctx.projectRoot, s, 'scope');
   }
-  const mode = ctx.config.methodology ?? 'manual';
+  const mode = validateMethodologyMode(
+    ctx.config.methodology, 'config.methodology');
   const hasRefs = input.specId !== undefined || input.designId !== undefined;
   if (!hasRefs && (input.planKey !== undefined || input.scenarioRefs !== undefined)) {
     throw err('METHODOLOGY_REQUIRED',

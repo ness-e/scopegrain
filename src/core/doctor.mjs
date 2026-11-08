@@ -19,6 +19,8 @@ const REQUIRED_TEMPLATES = [
   'entrypoint.md',
   'project-instructions.md',
   'task-contract.md',
+  'approval-prompts.json',
+  'render-specification.mjs',
 ];
 
 function statusOf(abs) {

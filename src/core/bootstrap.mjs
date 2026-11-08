@@ -31,7 +31,13 @@ export function templateDir(installRoot = INSTALL_ROOT) {
 }
 
 function readTemplate(name, templatesDir = TEMPLATES_DIR) {
-  return fs.readFileSync(path.join(templatesDir, name), 'utf8');
+  const file = path.join(templatesDir, name);
+  const limited = readFileLimited(file, loadLimits().maxDocumentBytes);
+  if (limited.exceeded) {
+    throw err('TEMPLATE_TOO_LARGE',
+      `template exceeds ${loadLimits().maxDocumentBytes} bytes: ${name}`);
+  }
+  return limited.content.toString('utf8');
 }
 
 export function renderTemplate(text, vars) {
@@ -109,7 +115,8 @@ export function buildInitPlan({
 
   // Canonical workflow/limits policy copied verbatim so copied references
   // can resolve ../policy/*.json inside the projected workspace.
-  for (const p of ['workflow.json', 'operation-limits.json']) {
+  for (const p of ['workflow.json', 'operation-limits.json',
+    'methodology.json']) {
     files.push(planFile(projectRoot, `${prefix}policy/${p}`,
       readTemplate(path.join('..', 'policy', p), templatesDir)));
   }
