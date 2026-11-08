@@ -44,7 +44,9 @@ function textArray(v, label, { required = false } = {}) {
   return v.map((s, i) => text(s, `${label}[${i}]`));
 }
 
-function id(v, label) {
+// Shared requirement/scenario ID syntax — same contract, exported for
+// tasks' stored-shape validation (no second regex).
+export function validateSpecificationItemId(v, label) {
   if (typeof v !== 'string' || !ID_RE.test(v)) {
     throw err('SPEC_DATA_MALFORMED',
       `${label} must match ${ID_RE}`);
@@ -131,7 +133,7 @@ export function validateSpecificationData(data,
     const scenarios = r.scenarios.map((s, j) => {
       closed(s, SCEN_KEYS, `${label}.requirements[${i}].scenarios[${j}]`);
       return {
-        id: id(s.id, `${label}.requirements[${i}].scenarios[${j}].id`),
+        id: validateSpecificationItemId(s.id, `${label}.requirements[${i}].scenarios[${j}].id`),
         given: text(s.given,
           `${label}.requirements[${i}].scenarios[${j}].given`),
         when: text(s.when,
@@ -142,7 +144,7 @@ export function validateSpecificationData(data,
     });
     uniqueIds(scenarios, `${label}.requirements[${i}].scenarios`);
     return {
-      id: id(r.id, `${label}.requirements[${i}].id`),
+      id: validateSpecificationItemId(r.id, `${label}.requirements[${i}].id`),
       statement: text(r.statement,
         `${label}.requirements[${i}].statement`),
       scenarios,

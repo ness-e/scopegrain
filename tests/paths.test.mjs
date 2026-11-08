@@ -112,3 +112,13 @@ test('toCanonicalRelative rejects non-strings and control characters', () => {
     (e) => e.code === 'INVALID_PATH');
   assert.throws(() => toCanonicalRelative(['a','b'].join(String.fromCharCode(31))), (e) => e.code === 'INVALID_PATH');
 });
+
+test('isSameOrAncestor caseSensitive: src does not authorize SRC', () => {
+  assert.equal(isSameOrAncestor('src/app', 'src/app/child'), true);
+  assert.equal(isSameOrAncestor('src/app', 'src/app2'), false);
+  assert.equal(isSameOrAncestor('src/app', 'SRC/app',
+    { caseSensitive: true }), false);
+  assert.equal(isSameOrAncestor('src/app', 'SRC/app'), true); // default
+  assert.equal(isSameOrAncestor('src/app', 'src/app/child',
+    { caseSensitive: true }), true);
+});

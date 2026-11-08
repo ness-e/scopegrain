@@ -88,7 +88,16 @@ export function assertDestination(input, label = 'destination') {
 }
 
 // Case-insensitive ancestor relation on canonical POSIX relative paths.
-export function isSameOrAncestor(ancestor, child) {
+// {caseSensitive:true} compares exact spelling — required for scope
+// authorization where src must not authorize SRC on case-distinguishing
+// filesystems. Default stays false for existing config-path consumers.
+export function isSameOrAncestor(ancestor, child,
+    { caseSensitive = false } = {}) {
+  if (caseSensitive) {
+    const a = assertDestination(ancestor, 'ancestor');
+    const c = assertDestination(child, 'child');
+    return c === a || c.startsWith(a + '/');
+  }
   const a = portableKey(ancestor);
   const c = portableKey(child);
   return c === a || c.startsWith(a + '/');

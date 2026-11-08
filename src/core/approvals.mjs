@@ -65,8 +65,9 @@ function dedupeScope(paths) {
   const seen = new Set();
   const out = [];
   for (const p of paths) {
-    const k = p.toLowerCase();
-    if (!seen.has(k)) { seen.add(k); out.push(p); }
+    // Only identical spellings dedupe: src/a and SRC/a are distinct scope
+    // paths on case-sensitive filesystems and both stay in the consent.
+    if (!seen.has(p)) { seen.add(p); out.push(p); }
   }
   return out;
 }

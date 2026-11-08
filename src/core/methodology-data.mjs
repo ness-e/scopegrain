@@ -3,6 +3,9 @@
 // this module computes facts from declared facts only (operator-attributed,
 // never authenticated).
 import { err } from './errors.mjs';
+import {
+  validateSpecificationData, validateSpecificationItemId,
+} from './specification-data.mjs';
 
 const ASSESSMENT_KEYS = new Set([
   'schemaVersion', 'request', 'intent', 'authorization', 'understanding',
@@ -124,9 +127,96 @@ export function validateMethodologyData(data,
   };
 }
 
-// Deterministic routing from declared facts. read-only reports first;
-// a change accumulates EVERY blocker. Route is never accepted as input -
-// it is derived here only.
+// Canonical scenario pairs of a structured V2 spec artifact - pure, no IO.
+// spec is the full artifact (spec.data); a non-V2/legacy record fails
+// SPEC_STRUCTURED_REQUIRED, malformed typed data keeps its own code.
+function structuredSpecData(spec) {
+  if (spec === null || typeof spec !== 'object' || Array.isArray(spec)
+      || spec.kind !== 'spec' || spec.schemaVersion !== 2
+      || spec.data === undefined) {
+    throw err('SPEC_STRUCTURED_REQUIRED',
+      'scenario helpers require a structured V2 spec artifact');
+  }
+  return validateSpecificationData(spec.data,
+    'scenario spec data', { stored: true });
+}
+
+export function allScenarioRefs(spec) {
+  const data = structuredSpecData(spec);
+  const refs = [];
+  for (const r of data.requirements) {
+    for (const s of r.scenarios) {
+      refs.push({ requirementId: r.id, scenarioId: s.id });
+    }
+  }
+  return refs;
+}
+
+// Resolve input refs to canonical spec pairs: case-insensitive lookup
+// through a Map, strict unknown-key/unknown-pair/duplicate/noncanonical
+// rejection. Omitted raw input means ALL scenarios; explicit [] always
+// fails for SDD (owner: >=1 scenario per formal task, no exception).
+export function normalizeScenarioRefs(spec, refs, { stored = false } = {}) {
+  const data = structuredSpecData(spec);
+  const pairs = new Map();
+  for (const r of data.requirements) {
+    for (const s of r.scenarios) {
+      pairs.set(`${r.id.toLowerCase()}/${s.id.toLowerCase()}`,
+        { requirementId: r.id, scenarioId: s.id });
+    }
+  }
+  const bad = (m) => err('INVALID_SCENARIO_REFS', `scenarioRefs: ${m}`);
+  if (refs === undefined) {
+    if (stored) throw bad('required in stored V2 data');
+    return allScenarioRefs(spec); // omitted -> full assignment
+  }
+  if (!Array.isArray(refs)) throw bad('must be an array of pairs');
+  if (refs.length === 0) {
+    throw bad('explicit [] never authorizes a formal task');
+  }
+  const seen = new Set();
+  const out = [];
+  for (const ref of refs) {
+    if (ref === null || typeof ref !== 'object' || Array.isArray(ref)) {
+      throw bad('each ref must be an object');
+    }
+    const keys = Object.keys(ref);
+    if (keys.length !== 2 || !keys.includes('requirementId')
+        || !keys.includes('scenarioId')) {
+      throw bad("each ref requires exactly {requirementId,scenarioId}");
+    }
+    // Actual string IDs only - no String() coercion of numbers/arrays.
+    let rid;
+    let sid;
+    try {
+      rid = validateSpecificationItemId(ref.requirementId, 'requirementId');
+      sid = validateSpecificationItemId(ref.scenarioId, 'scenarioId');
+    } catch (e) {
+      throw bad(e.message.replace('specification item', 'id'));
+    }
+    const key = `${rid.toLowerCase()}/${sid.toLowerCase()}`;
+    const canonical = pairs.get(key);
+    if (!canonical) {
+      throw bad(`unknown pair ${ref.requirementId}/${ref.scenarioId}`);
+    }
+    if (stored && (ref.requirementId !== canonical.requirementId
+        || ref.scenarioId !== canonical.scenarioId)) {
+      throw bad(`noncanonical spelling ${ref.requirementId}/`
+        + `${ref.scenarioId}`);
+    }
+    if (seen.has(key)) {
+      throw bad(`duplicate pair ${canonical.requirementId}/`
+        + `${canonical.scenarioId}`);
+    }
+    seen.add(key);
+    out.push(canonical);
+  }
+  return out;
+}
+
+// Deterministic routing from declared facts: read-only reports first; a
+// change accumulates EVERY blocker. Route is never accepted as input - it
+// is derived here only.
 export function classifyWork(data) {
   const d = validateMethodologyData(data, 'methodology input');
   const issues = [];

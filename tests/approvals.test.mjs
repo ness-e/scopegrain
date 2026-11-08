@@ -554,3 +554,22 @@ test('task/plan digests: progress stable; scope/contract/deps change them', () =
     assert.notEqual(targetOf(ctx, 'plan', null, 'p1').target.digest, d1);
   } finally { cleanup(dir); }
 });
+
+test('approval scope preserves case-distinct paths src/a and SRC/a', () => {
+  const { dir, ctx } = bootstrappedCtx();
+  try {
+    const task = createTask(ctx, {
+      title: 'T', contract: 'C', authorContext: 'a',
+      scope: ['src/a', 'SRC/a'] });
+    const { scope } = targetOf(ctx, 'task', null, task.id);
+    assert.deepEqual(scope.paths, ['src/a', 'SRC/a']); // both kept, no fold
+    // Full record keeps both spellings through persist + answer + read.
+    const a = makeApproval(ctx, dir, 'task', null, task.id);
+    assert.deepEqual(a.scope.paths, ['src/a', 'SRC/a']);
+    const next = answerApproval(ctx,
+      answer(a.id, a.revision, a.target.digest, { comment: 'ok' }));
+    assert.equal(next.status, 'approved');
+    const stored = getApproval(ctx, a.id);
+    assert.deepEqual(stored.scope.paths, ['src/a', 'SRC/a']);
+  } finally { cleanup(dir); }
+});

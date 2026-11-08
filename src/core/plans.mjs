@@ -10,18 +10,25 @@ import { lstatOrNull, readFileLimited } from './fsx.mjs';
 import { resolveInside } from './paths.mjs';
 import { loadPolicy, loadLimits } from './policy.mjs';
 import {
-  buildTaskRecord, getTask, normalizeTaskInput,
+  buildTaskRecord, getTask, normalizeTaskInput, validateTaskShape,
 } from './tasks.mjs';
+import { canonicalDigest } from './digests.mjs';
+import { getArtifact } from './artifacts.mjs';
+import { getSpecification } from './specifications.mjs';
+import { allScenarioRefs } from './methodology-data.mjs';
 
 const KEY_RE = /^[a-z0-9][a-z0-9-]{0,63}$/;
-const PLAN_INPUT_KEYS = new Set(['key', 'title', 'authorContext', 'tasks']);
-const PLAN_TASK_KEYS = new Set(['key', 'title', 'contract', 'scope', 'dependsOn']);
+const PLAN_INPUT_KEYS = new Set(
+  ['key', 'title', 'authorContext', 'tasks', 'specId', 'designId']);
+const PLAN_TASK_KEYS = new Set(
+  ['key', 'title', 'contract', 'scope', 'dependsOn', 'scenarioRefs']);
 const PLAN_KEYS = new Set([
   'schemaVersion', 'key', 'title', 'authorContext', 'inputDigest',
-  'tasks', 'createdAt',
+  'tasks', 'createdAt', 'specId', 'designId',
 ]);
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUUID = (v) => typeof v === 'string' && UUID_RE.test(v);
 
 export function plansDirAbs(ctx) {
   return resolveInside(ctx.projectRoot, ctx.config.paths.plans, 'paths.plans');
@@ -58,6 +65,24 @@ export function validatePlanInput(ctx, input) {
     typeof input.authorContext === 'string' && input.authorContext.trim() !== ''
       ? input.authorContext
       : (() => { throw err('INVALID_VALUE', 'plan.authorContext must be non-empty'); })();
+  // Optional formal pair: both UUIDs together, design bound to the spec at
+  // its current digest — resolved at prepare, stored at V2.
+  const hasPair = input.specId !== undefined || input.designId !== undefined;
+  let spec = null;
+  let design = null;
+  if (hasPair) {
+    if (!isUUID(input.specId) || !isUUID(input.designId)) {
+      throw err('INVALID_ID', 'plan specId and designId must both be UUIDs');
+    }
+    spec = getSpecification(ctx, input.specId);
+    design = getArtifact(ctx, 'design', input.designId);
+    if (design.schemaVersion !== 2 || design.data === undefined
+        || design.data.specId.toLowerCase() !== spec.id.toLowerCase()
+        || design.data.specDigest !== canonicalDigest(spec)) {
+      throw err('INVALID_PLAN',
+        'design must belong to the referenced spec at its current digest');
+    }
+  }
   const maxTasks = loadLimits().maxPlanTasks;
   if (!Array.isArray(input.tasks)
       || input.tasks.length === 0 || input.tasks.length > maxTasks) {
@@ -79,9 +104,18 @@ export function validatePlanInput(ctx, input) {
       throw err('INVALID_PLAN', `duplicate task key '${tkey}'`);
     }
     seen.add(tkey);
+    // scenarioRefs requires the plan pair — reject before normalization.
+    if (!hasPair && t.scenarioRefs !== undefined) {
+      throw err('METHODOLOGY_REQUIRED',
+        `tasks[${i}].scenarioRefs requires plan specId+designId`);
+    }
     const clean = normalizeTaskInput(ctx, {
       title: t.title, contract: t.contract,
       authorContext, scope: t.scope === undefined ? [] : t.scope,
+      ...(hasPair ? {
+        methodology: null, specId: input.specId, designId: input.designId,
+        planKey: key, scenarioRefs: t.scenarioRefs,
+      } : {}),
     });
     const dependsOn = t.dependsOn === undefined ? [] : t.dependsOn;
     if (!Array.isArray(dependsOn)) {
@@ -93,7 +127,25 @@ export function validatePlanInput(ctx, input) {
 
   validateDag(tasks.map((t) => ({ key: t.key, dependsOn: t.dependsOn })),
     'plan input', seen);
-  return { key, title, authorContext, tasks };
+  // Formal coverage: union of task assignments must cover the whole spec —
+  // overlaps allowed, no holes. (Membership/live-union re-check is a gate.)
+  if (hasPair) {
+    const all = allScenarioRefs(spec);
+    const union = new Set();
+    for (const t of tasks) {
+      for (const r of t.scenarioRefs) {
+        union.add(`${r.requirementId}/${r.scenarioId}`);
+      }
+    }
+    for (const { requirementId, scenarioId } of all) {
+      if (!union.has(`${requirementId}/${scenarioId}`)) {
+        throw err('INVALID_PLAN',
+          `plan leaves scenario ${requirementId}/${scenarioId} uncovered`);
+      }
+    }
+  }
+  return { key, title, authorContext, tasks,
+    specId: spec?.id, designId: design?.id };
 }
 
 // Shared DAG check used by input validation AND stored-record validation:
@@ -150,6 +202,7 @@ export function preparePlan(ctx, input) {
   for (const t of clean.tasks) {
     const id = crypto.randomUUID();
     const record = buildTaskRecord(t, { id, at, initial: policy.initial });
+    validateTaskShape(record, `plan task '${t.key}'`);
     tasks.push({ key: t.key, id, dependsOn: t.dependsOn });
     const rel = `${ctx.config.paths.tasks}/${id}.json`;
     files.push({
@@ -159,14 +212,17 @@ export function preparePlan(ctx, input) {
     });
   }
   const plan = {
-    schemaVersion: 1,
+    schemaVersion: clean.specId !== undefined ? 2 : 1,
     key: clean.key,
     title: clean.title,
     authorContext: clean.authorContext,
     inputDigest: planDigest(input),
     tasks,
     createdAt: at,
+    ...(clean.specId !== undefined
+      ? { specId: clean.specId, designId: clean.designId } : {}),
   };
+  validatePlanShape(plan, 'prepared plan');
   const planRel = `${ctx.config.paths.plans}/${clean.key}.json`;
   files.push({
     rel: planRel,
@@ -189,7 +245,11 @@ export function validatePlanShape(plan, label = 'plan') {
   const iso = (v) => typeof v === 'string' && v !== ''
     && !Number.isNaN(Date.parse(v))
     && new Date(Date.parse(v)).toISOString() === v;
-  if (plan.schemaVersion !== 1
+  if ((plan.schemaVersion !== 1 && plan.schemaVersion !== 2)
+      || (plan.schemaVersion === 2
+        && (!isUUID(plan.specId) || !isUUID(plan.designId)))
+      || (plan.schemaVersion === 1
+        && (plan.specId !== undefined || plan.designId !== undefined))
       || typeof plan.title !== 'string' || plan.title.trim() === ''
       || typeof plan.authorContext !== 'string'
       || plan.authorContext.trim() === ''
@@ -219,7 +279,7 @@ export function validatePlanShape(plan, label = 'plan') {
       throw err('PLAN_MALFORMED', `${label} duplicates task key '${t.key}'`);
     }
     keys.add(t.key);
-    if (!UUID_RE.test(t.id || '')) {
+    if (!isUUID(t.id)) {
       throw err('PLAN_MALFORMED', `${label}.tasks[${i}].id is not a UUID`);
     }
     const lid = t.id.toLowerCase();
