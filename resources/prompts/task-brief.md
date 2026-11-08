@@ -1,17 +1,22 @@
 ---
 name: task-brief
-description: Structure a bounded implementation brief from settled inputs.
+description: Structure a bounded implementation brief from settled inputs and the selected methodology route.
 ---
 # Task Brief
 
-Required slots: actual task/plan identity and revision; approved contract
-and source digests; goal; non-goals; exact interfaces; allowed write paths;
-settled findings; dependencies; acceptance cases; exact authorized checks;
-expected artifacts; budget/permission limits; current runtime state.
+Common required slots: actual task identity and revision; original request;
+scope and exclusions; selected route and recorded authority; settled findings;
+exact interfaces and acceptance cases; available authorized checks; required
+artifacts; permission/budget limits; dependencies and current runtime state.
 
-Include existing servers/processes and whether they must be reused or left
-running. Freeze prior derived inputs rather than asking for recomputation.
-Name unresolved items as blockers; do not dispatch implementation with
-alternative contracts left for the recipient to choose.
-Require a complete diff and raw evidence, not only a success summary.
-Missing slots are questions, not permission to fabricate values.
+For SDD include current specification/design/plan references, reviewed digests,
+approvals and assigned scenarioRefs. For light work include classification
+facts and recorded bounded authorization, not fictitious formal approvals.
+
+Include live processes and whether to reuse or leave them running. Pass
+frozen derived inputs rather than asking a worker to recompute known results.
+Unresolved product or permission decisions block dispatch. Do not offer
+alternative interfaces and ask the implementer to silently select one.
+
+Require the complete diff, raw evidence and explicit limitations rather than
+only a success summary. A brief cannot expand the owner's authorized scope.

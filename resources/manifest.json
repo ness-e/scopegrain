@@ -1122,6 +1122,12 @@
       "id": "task-system",
       "path": "resources/references/task-system.md",
       "description": "Task lifecycle, plans and preserved continuation state."
+    },
+    {
+      "kind": "skill",
+      "id": "organic-driven-development",
+      "path": "resources/skills/organic-driven-development/SKILL.md",
+      "description": "Select proportionate authorized engineering work with Organic and SDD."
     }
   ],
   "aliases": [

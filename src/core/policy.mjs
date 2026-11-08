@@ -100,6 +100,97 @@ export function loadLimits() {
   return d;
 }
 
+// Authored methodology policy (policy/methodology.json): modes, defaults,
+// risk categories, gated states, research escalation and false capabilities.
+// Immutable declared facts — never tunable thresholds. Validated against
+// the authored contract BEFORE any .includes access (no raw TypeErrors),
+// deep-frozen before caching, and a failed load never poisons the cache.
+let cachedMethodology = null;
+export function loadMethodologyPolicy() {
+  if (cachedMethodology) return cachedMethodology;
+  const d = loadPolicyFile('methodology.json', 'methodology policy');
+  const bad = (field, why) => err('POLICY_MALFORMED',
+    `methodology.${field}: ${why}`);
+  const closed = (v, keys, label) => {
+    if (v === null || typeof v !== 'object' || Array.isArray(v)) {
+      throw bad(label, 'must be an object');
+    }
+    for (const k of Object.keys(v)) {
+      if (!keys.includes(k)) {
+        throw bad(label, `unknown key '${k}'`);
+      }
+    }
+  };
+  closed(d, ['schemaVersion', 'modes', 'legacyDefault', 'interactiveDefault',
+    'oddDefinition', 'smallTaskTracking', 'riskCategories', 'gatedTaskStates',
+    'researchEscalation', 'authenticatesApprovalIdentity',
+    'authenticatesEvidence', 'interceptsNativeTools', 'executesAgents'],
+    'root');
+  const exactUniqueSet = (v, want, field) => {
+    if (!Array.isArray(v) || v.length !== want.length
+        || !v.every((x) => typeof x === 'string')
+        || new Set(v.map((s) => s.toLowerCase())).size !== v.length
+        || ![...v].every((x) => want.includes(x))) {
+      throw bad(field, `must be exactly ${JSON.stringify(want)}, unique`);
+    }
+  };
+  exactUniqueSet(d.modes, ['manual', 'organic-sdd', 'sdd'], 'modes');
+  if (d.legacyDefault !== 'manual') {
+    throw bad('legacyDefault', "must be 'manual'");
+  }
+  if (d.interactiveDefault !== 'organic-sdd') {
+    throw bad('interactiveDefault', "must be 'organic-sdd'");
+  }
+  if (d.oddDefinition !== 'organic-driven') {
+    throw bad('oddDefinition', "must be 'organic-driven'");
+  }
+  if (d.smallTaskTracking !== 'task-record') {
+    throw bad('smallTaskTracking', "must be 'task-record'");
+  }
+  exactUniqueSet(d.gatedTaskStates, ['ACT', 'ACCEPT'], 'gatedTaskStates');
+  exactUniqueSet(d.riskCategories, [
+    'security', 'data-integrity', 'public-contract', 'concurrency',
+    'delivery', 'external-effects', 'verification-gap', 'other'],
+    'riskCategories');
+  closed(d.researchEscalation, [
+    'investigateAfterSimilarFailures',
+    'revisitDesignAfterAttemptsWithoutProgress', 'network',
+    'causalGrouping'], 'researchEscalation');
+  const esc = d.researchEscalation;
+  if (esc.investigateAfterSimilarFailures !== 2) {
+    throw bad('researchEscalation.investigateAfterSimilarFailures',
+      'must be 2');
+  }
+  if (esc.revisitDesignAfterAttemptsWithoutProgress !== 3) {
+    throw bad('researchEscalation.revisitDesignAfterAttemptsWithoutProgress',
+      'must be 3');
+  }
+  if (esc.network !== 'ask') {
+    throw bad('researchEscalation.network', "must be 'ask'");
+  }
+  if (esc.causalGrouping
+      !== 'explicitly-recorded-hypothesis-not-inferred-from-counts') {
+    throw bad('researchEscalation.causalGrouping', 'must be the authored value');
+  }
+  for (const k of ['authenticatesApprovalIdentity', 'authenticatesEvidence',
+    'interceptsNativeTools', 'executesAgents']) {
+    if (d[k] !== false) {
+      throw bad(k, 'must be false');
+    }
+  }
+  // Deep-freeze the whole graph before caching — the returned object is
+  // immutable declared policy, never a tunable.
+  const frozen = Object.freeze({
+    ...d,
+    modes: Object.freeze([...d.modes]),
+    riskCategories: Object.freeze([...d.riskCategories]),
+    gatedTaskStates: Object.freeze([...d.gatedTaskStates]),
+    researchEscalation: Object.freeze({ ...d.researchEscalation }),
+  });
+  cachedMethodology = frozen;
+  return frozen;
+}
+
 // Authored onboarding defaults (policy/onboarding-defaults.json): workspace,
 // default artifact paths, versioning flags and review subdirectory.
 export function loadOnboardingDefaults() {

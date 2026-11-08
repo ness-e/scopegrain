@@ -1,20 +1,19 @@
 ---
 name: outcome-driven-development
-description: Use when defining or accepting a change to agree observable outcomes and evidence.
+description: Use when agreeing observable acceptance criteria and result evidence, independently of the selected engineering methodology.
 ---
-# Outcome-Driven Development
+# Observable Outcomes
 
-TaskSystem uses Outcome-Driven explicitly; ODD is not a universal unambiguous
-standard and does not mean ontology-driven development here.
+This capability concerns results and evidence; it is NOT the definition of
+ODD in TaskSystem. ODD means Organic Driven Development.
 
-1. Inspect what is already implemented and what outcome is still missing.
-2. Ask the owner for the intended result, actors, constraints and non-goals.
-3. Agree observable acceptance and the evidence that would establish it.
-   If no baseline/metric exists, plan collection; do not invent a number.
-4. Compare strategies and obtain a bounded specification/design decision.
-5. Connect requirements to tasks, tests, review and the agreed result.
-6. At acceptance distinguish implementation output, test results and outcome
-   evidence. Unknown impact remains unknown even when code checks pass.
+Inspect what is already implemented. Agree the intended observable result,
+actors, constraints, non-goals and the evidence that would establish success.
+Preserve exact requested behavior and examples. If a baseline or metric is
+unknown, propose authorized collection rather than inventing a number.
 
-Use the SDD procedure for specifications and phase approvals.
-The lead records consequential decisions and retains publication authority.
+For light work, keep acceptance and actual evidence in its bounded task record.
+For SDD, link scenarios, task scope, checks, review and the bound outcome report.
+Distinguish produced files, passing checks and demonstrated product outcomes.
+Unknown impact remains unknown; an operator attestation is not authenticated
+proof that an external outcome occurred.

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "modes": ["manual", "organic-sdd", "sdd"],
+  "legacyDefault": "manual",
+  "interactiveDefault": "organic-sdd",
+  "oddDefinition": "organic-driven",
+  "smallTaskTracking": "task-record",
+  "riskCategories": [
+    "security", "data-integrity", "public-contract", "concurrency",
+    "delivery", "external-effects", "verification-gap", "other"
+  ],
+  "gatedTaskStates": ["ACT", "ACCEPT"],
+  "researchEscalation": {
+    "investigateAfterSimilarFailures": 2,
+    "revisitDesignAfterAttemptsWithoutProgress": 3,
+    "network": "ask",
+    "causalGrouping": "explicitly-recorded-hypothesis-not-inferred-from-counts"
+  },
+  "authenticatesApprovalIdentity": false,
+  "authenticatesEvidence": false,
+  "interceptsNativeTools": false,
+  "executesAgents": false
+}
