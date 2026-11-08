@@ -149,7 +149,7 @@ export function validateArtifactShape(a, kind, label = 'artifact') {
       throw err('ARTIFACT_MALFORMED', `${label} has unknown key '${k}'`);
     }
   }
-  if (!UUID_RE.test(a.id || '')
+  if (typeof a.id !== 'string' || !UUID_RE.test(a.id)
       || a.kind !== kind
       || typeof a.title !== 'string' || a.title.trim() === ''
       || typeof a.body !== 'string' || a.body.trim() === ''

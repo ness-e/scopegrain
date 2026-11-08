@@ -4,9 +4,16 @@
 import { err } from './errors.mjs';
 import { toCanonicalRelative } from './paths.mjs';
 import { loadPolicy } from './policy.mjs';
+import { validateSpecificationItemId } from './specification-data.mjs';
 
-const VERIFICATION_KEYS = new Set(['checks']);
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const VERIFICATION_KEYS = new Set(
+  ['checks', 'coverage', 'outcomeEvidenceId']);
 const CHECK_KEYS = new Set(['command', 'cwd', 'status', 'evidence']);
+const COVERAGE_KEYS = new Set(
+  ['requirementId', 'scenarioId', 'checkIndexes']);
 const REVIEW_KEYS = new Set([
   'mode', 'reviewer', 'authorContext', 'reviewerContext',
   'verdict', 'owner', 'reference', 'reason',
@@ -38,8 +45,8 @@ export function validateVerification(verification) {
     throw err('INVALID_EVIDENCE', 'verification.checks must be a non-empty array');
   }
   const accepted = acceptance.verificationStatuses;
-  return {
-    checks: checks.map((c, i) => {
+  const out = {
+    checks: Array.from(checks, (c, i) => {
       checkKeys(c, CHECK_KEYS, `verification.checks[${i}]`);
       for (const key of CHECK_KEYS) {
         if (!(key in c)) {
@@ -58,6 +65,63 @@ export function validateVerification(verification) {
       return { command: c.command, cwd, status: c.status, evidence: c.evidence };
     }),
   };
+  // Optional coverage: exactly {requirementId,scenarioId,checkIndexes}
+  // entries, casefold-unique pairs, indexes bounded by checks.length.
+  if (verification.coverage !== undefined) {
+    if (!Array.isArray(verification.coverage)) {
+      throw err('INVALID_EVIDENCE', 'verification.coverage must be an array');
+    }
+    const seen = new Set();
+    const cov = [];
+    for (const [i, c] of verification.coverage.entries()) {
+      checkKeys(c, COVERAGE_KEYS, `verification.coverage[${i}]`);
+      for (const key of COVERAGE_KEYS) {
+        if (!(key in c)) {
+          throw err('INVALID_EVIDENCE',
+            `verification.coverage[${i}] is missing '${key}'`);
+        }
+      }
+      let rid;
+      let sid;
+      try {
+        rid = validateSpecificationItemId(c.requirementId,
+          `coverage[${i}].requirementId`);
+        sid = validateSpecificationItemId(c.scenarioId,
+          `coverage[${i}].scenarioId`);
+      } catch (e) {
+        throw err('INVALID_EVIDENCE', `coverage[${i}]: ${e.message}`);
+      }
+      const idx = c.checkIndexes;
+      if (!Array.isArray(idx) || idx.length === 0) {
+        throw err('INVALID_EVIDENCE',
+          `coverage[${i}].checkIndexes must be a non-empty array`);
+      }
+      for (const [j, n] of idx.entries()) {
+        if (!Number.isSafeInteger(n) || n < 0 || n >= checks.length) {
+          throw err('INVALID_EVIDENCE',
+            `coverage[${i}].checkIndexes[${j}] out of range`);
+        }
+      }
+      const k = `${rid.toLowerCase()}/${sid.toLowerCase()}`;
+      if (seen.has(k)) {
+        throw err('INVALID_EVIDENCE',
+          `coverage pair ${rid}/${sid} duplicated`);
+      }
+      seen.add(k);
+      cov.push({ requirementId: rid, scenarioId: sid,
+        checkIndexes: [...idx] });
+    }
+    out.coverage = cov;
+  }
+  if (verification.outcomeEvidenceId !== undefined) {
+    if (typeof verification.outcomeEvidenceId !== 'string'
+        || !UUID_RE.test(verification.outcomeEvidenceId)) {
+      throw err('INVALID_EVIDENCE',
+        'verification.outcomeEvidenceId must be a UUID string');
+    }
+    out.outcomeEvidenceId = verification.outcomeEvidenceId;
+  }
+  return out;
 }
 
 export function validateReview(review, task) {

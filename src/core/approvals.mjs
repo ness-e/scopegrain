@@ -234,15 +234,16 @@ function validateTargetInput(target) {
   if (target.kind === 'artifact') {
     if (keys.length !== 4
         || !ARTIFACT_KINDS.has(target.artifactKind)
-        || !UUID_RE.test(target.id || '')
-        || !SHA_RE.test(target.digest || '')) {
+        || typeof target.id !== 'string' || !UUID_RE.test(target.id)
+        || typeof target.digest !== 'string' || !SHA_RE.test(target.digest)) {
       throw err('APPROVAL_INVALID', 'target artifact shape invalid');
     }
   } else if (target.kind === 'task' || target.kind === 'plan') {
     const idOk = target.kind === 'task'
-      ? UUID_RE.test(target.id || '')
-      : PLAN_KEY_RE.test(target.id || '');
-    if (keys.length !== 3 || !idOk || !SHA_RE.test(target.digest || '')) {
+      ? (typeof target.id === 'string' && UUID_RE.test(target.id))
+      : (typeof target.id === 'string' && PLAN_KEY_RE.test(target.id));
+    if (keys.length !== 3 || !idOk
+        || typeof target.digest !== 'string' || !SHA_RE.test(target.digest)) {
       throw err('APPROVAL_INVALID', `target ${target.kind} shape invalid`);
     }
   } else {
@@ -307,7 +308,8 @@ export function validateApprovalShape(a, label = 'approval') {
   } catch (e) {
     throw err('APPROVAL_MALFORMED', `${label}: ${e.message}`);
   }
-  if (a.schemaVersion !== 1 || !SHA_RE.test(a.id || '')
+  if (a.schemaVersion !== 1
+      || typeof a.id !== 'string' || !SHA_RE.test(a.id)
       || !Number.isSafeInteger(a.revision) || a.revision < 0
       || !STATUSES.has(a.status)
       || typeof a.question !== 'string' || a.question.trim() === ''
@@ -321,13 +323,16 @@ export function validateApprovalShape(a, label = 'approval') {
   }
   if (t.kind === 'artifact') {
     if (Object.keys(t).length !== 4 || !ARTIFACT_KINDS.has(t.artifactKind)
-        || !UUID_RE.test(t.id || '') || !SHA_RE.test(t.digest || '')) {
+        || typeof t.id !== 'string' || !UUID_RE.test(t.id)
+        || typeof t.digest !== 'string' || !SHA_RE.test(t.digest)) {
       throw err('APPROVAL_MALFORMED', `${label}.target artifact invalid`);
     }
   } else if (t.kind === 'task' || t.kind === 'plan') {
     const idOk = t.kind === 'task'
-      ? UUID_RE.test(t.id || '') : PLAN_KEY_RE.test(t.id || '');
-    if (Object.keys(t).length !== 3 || !idOk || !SHA_RE.test(t.digest || '')) {
+      ? (typeof t.id === 'string' && UUID_RE.test(t.id))
+      : (typeof t.id === 'string' && PLAN_KEY_RE.test(t.id));
+    if (Object.keys(t).length !== 3 || !idOk
+        || typeof t.digest !== 'string' || !SHA_RE.test(t.digest)) {
       throw err('APPROVAL_MALFORMED', `${label}.target ${t.kind} invalid`);
     }
   } else {
