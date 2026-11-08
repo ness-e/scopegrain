@@ -13,21 +13,55 @@ export function lstatOrNull(p) {
 
 // Bounded read via descriptor + fstat; never buffers more than maxBytes.
 export function readFileLimited(p, maxBytes) {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 0) {
+    throw err('INVALID_VALUE', 'maxBytes must be a non-negative safe integer');
+  }
   const fd = fs.openSync(p, 'r');
   try {
     const st = fs.fstatSync(fd);
     if (st.size > maxBytes) {
       return { exceeded: true, size: st.size, content: null };
     }
-    const buf = Buffer.alloc(Math.max(1, Math.min(st.size, maxBytes + 1)));
-    const bytesRead = fs.readSync(fd, buf, 0, buf.length, 0);
-    return {
-      exceeded: false,
-      size: st.size,
-      content: buf.subarray(0, bytesRead),
-    };
+    const buf = Buffer.alloc(st.size);
+    let off = 0;
+    while (off < st.size) {
+      const n = fs.readSync(fd, buf, off, st.size - off, off);
+      if (n <= 0) {
+        throw err('READ_FAILED',
+          `read made no progress on ${p} (${off}/${st.size})`);
+      }
+      off += n;
+    }
+    const st2 = fs.fstatSync(fd);
+    if (st2.size > maxBytes) {
+      return { exceeded: true, size: st2.size, content: null };
+    }
+    if (st2.size !== st.size) {
+      throw err('READ_FAILED',
+        `${p} changed size during read (${st.size} -> ${st2.size})`);
+    }
+    return { exceeded: false, size: st.size, content: buf };
   } finally {
     fs.closeSync(fd);
+  }
+}
+
+export function readJsonFile(p, label, maxBytes = 1048576) {
+  let limited;
+  try {
+    limited = readFileLimited(p, maxBytes);
+  } catch (e) {
+    if (e && e.code === 'READ_FAILED') throw e;
+    throw err('READ_FAILED', `cannot read ${label}: ${p}`);
+  }
+  if (limited.exceeded) {
+    throw err('DOCUMENT_TOO_LARGE',
+      `${label} exceeds ${maxBytes} bytes: ${p}`);
+  }
+  try {
+    return JSON.parse(limited.content.toString('utf8'));
+  } catch {
+    throw err('MALFORMED_JSON', `malformed JSON in ${label}: ${p}`);
   }
 }
 
@@ -49,20 +83,6 @@ export function readDirBounded(dirAbs, max) {
     dir.closeSync();
   }
   return { entries, truncated };
-}
-
-export function readJsonFile(p, label) {
-  let raw;
-  try {
-    raw = fs.readFileSync(p, 'utf8');
-  } catch (e) {
-    throw err('READ_FAILED', `cannot read ${label}: ${p}`);
-  }
-  try {
-    return JSON.parse(raw);
-  } catch {
-    throw err('MALFORMED_JSON', `malformed JSON in ${label}: ${p}`);
-  }
 }
 
 // Exclusive write with ownership semantics: the fd is opened OUTSIDE the

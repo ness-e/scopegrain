@@ -159,18 +159,19 @@ export function loadCatalog({ installRoot = INSTALL_ROOT } = {}) {
     if (byKey.has(key)) {
       throw err('CATALOG_DUPLICATE', `duplicate ${key} (case-insensitive)`);
     }
-    byKey.set(key, e);
+    const canon = { ...e, path: rel };
+    byKey.set(key, canon);
     const dest = portableKey(rel);
     if (byDest.has(dest)) {
       throw err('CATALOG_DUPLICATE', `duplicate catalog path ${rel}`);
     }
-    byDest.set(dest, e);
+    byDest.set(dest, canon);
     // Post-mapping destination collisions are also detected at load so
     // checkCatalog (not only catalogFiles) catches them.
-    const proj = portableKey(catalogDestRel({ ...e, path: rel }));
+    const proj = portableKey(catalogDestRel(canon));
     if (byProj.has(proj) && byProj.get(proj) !== `${e.kind}/${e.id}`) {
       throw err('CATALOG_DUPLICATE',
-        `projected destination collision: ${catalogDestRel({ ...e, path: rel })}`);
+        `projected destination collision: ${catalogDestRel(canon)}`);
     }
     byProj.set(proj, `${e.kind}/${e.id}`);
     for (const dk of DEP_KEYS) {
@@ -181,14 +182,14 @@ export function loadCatalog({ installRoot = INSTALL_ROOT } = {}) {
     }
     if (e.kind === 'command') {
       if (!Array.isArray(e.modes) || e.modes.length === 0
-          || !e.modes.every((m) => typeof m === 'string' && m !== '')
+          || !e.modes.every((m) => typeof m === 'string' && m.trim() !== '')
           || new Set(e.modes).size !== e.modes.length) {
         throw err('CATALOG_MALFORMED',
           `command/${e.id} requires unique non-empty modes`);
       }
     }
     readEntryContent(installRoot, rel); // existence/link check eagerly
-    return { ...e, path: rel };
+    return canon;
   });
 
   // Dependency references must resolve to existing entries of the right kind.

@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import fs from 'node:fs';
 import { err } from './errors.mjs';
-import { readJsonFile } from './fsx.mjs';
+import { readFileLimited, readJsonFile } from './fsx.mjs';
+
+const LIMIT_BYTES = 1048576; // 1MiB policy-file bound (no policy/fsx cycle)
 
 const POLICY_DIR = fileURLToPath(new URL('../../policy/', import.meta.url));
 const POLICY_PATH = fileURLToPath(
@@ -56,10 +58,18 @@ function loadPolicyFile(name, label) {
   const file = path.join(POLICY_DIR, name);
   let data;
   try {
-    data = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const limited = readFileLimited(file, LIMIT_BYTES);
+    if (limited.exceeded) {
+      throw err('POLICY_MALFORMED',
+        `${label} exceeds ${LIMIT_BYTES} bytes: policy/${name}`);
+    }
+    data = JSON.parse(limited.content.toString('utf8'));
   } catch (e) {
     if (e && e.code === 'ENOENT') {
       throw err('POLICY_NOT_FOUND', `${label} not found: policy/${name}`);
+    }
+    if (e && e.code === 'POLICY_MALFORMED') {
+      throw e;
     }
     throw err('POLICY_MALFORMED', `${label} is not valid JSON: policy/${name}`);
   }

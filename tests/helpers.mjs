@@ -7,11 +7,8 @@ import { fileURLToPath } from 'node:url';
 const TMP_ROOT = fileURLToPath(new URL('./.tmp/', import.meta.url));
 
 export function makeTempDir(name) {
-  const dir = path.join(
-    TMP_ROOT,
-    `${name}-${process.pid}-${Math.random().toString(16).slice(2)}`);
-  fs.mkdirSync(dir, { recursive: true });
-  return dir;
+  fs.mkdirSync(TMP_ROOT, { recursive: true });
+  return fs.mkdtempSync(path.join(TMP_ROOT, `${name}-`));
 }
 
 export function cleanup(dir) {

@@ -3,12 +3,13 @@
 // and never asserts that a host or service is installed.
 import fs from 'node:fs';
 import path from 'node:path';
-import { lstatOrNull } from './fsx.mjs';
+import { lstatOrNull, readFileLimited } from './fsx.mjs';
 import { resolveInside } from './paths.mjs';
 import { PATH_KEYS, configDirOf } from './config.mjs';
 import { inspectProject } from '../discovery/inspect.mjs';
 import { buildInitPlan, INSTALL_ROOT } from './bootstrap.mjs';
 import { checkCatalog } from './catalog.mjs';
+import { loadLimits } from './policy.mjs';
 
 const REQUIRED_TEMPLATES = [
   'hosts/native-resource.md',
@@ -33,7 +34,9 @@ function bytesEqualOnDisk(abs, content) {
   const st = lstatOrNull(abs);
   if (!st || !st.isFile() || st.isSymbolicLink()) return false;
   const incoming = Buffer.isBuffer(content) ? content : Buffer.from(content);
-  return fs.readFileSync(abs).equals(incoming);
+  const limited = readFileLimited(abs, incoming.length);
+  if (limited.exceeded) return false;
+  return limited.content.equals(incoming);
 }
 
 // ctx: {projectRoot, configPath, configDir, config} from resolveContext.

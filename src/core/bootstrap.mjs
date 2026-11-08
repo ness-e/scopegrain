@@ -4,7 +4,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { err } from './errors.mjs';
-import { lstatOrNull, mkdirpSync, removeIfExists } from './fsx.mjs';
+import { lstatOrNull, mkdirpSync, readFileLimited, removeIfExists } from './fsx.mjs';
 import {
   assertDestination, isSameOrAncestor, portableKey, resolveInside,
 } from './paths.mjs';
@@ -16,6 +16,7 @@ import {
 import { inspectProject } from '../discovery/inspect.mjs';
 import { renderAdapters } from '../adapters/render.mjs';
 import { catalogFiles } from './catalog.mjs';
+import { loadLimits } from './policy.mjs';
 import { buildVersioningFiles } from './versioning.mjs';
 import { renderNativeAdapters } from '../adapters/native.mjs';
 
@@ -172,9 +173,17 @@ export function preflightPlan(projectRoot, files) {
       conflicts.push({ path: f.rel, reason: 'destination is a link or directory' });
       return { ...f, abs, action: 'conflict' };
     }
-    const existing = fs.readFileSync(abs);
     const incoming = Buffer.isBuffer(f.content) ? f.content : Buffer.from(f.content);
-    if (existing.equals(incoming)) {
+    // Bounded comparison read: incoming.length is the bound, so an
+    // oversized/changed existing file yields conflict without a full read
+    // or partial data.
+    const limited = readFileLimited(abs, incoming.length);
+    if (limited.exceeded) {
+      conflicts.push({ path: f.rel,
+        reason: 'destination exists with different content' });
+      return { ...f, abs, action: 'conflict' };
+    }
+    if (limited.content.equals(incoming)) {
       return { ...f, abs, action: 'noop' };
     }
     conflicts.push({ path: f.rel, reason: 'destination exists with different content' });
@@ -200,12 +209,17 @@ export function checkExistingConfig(projectRoot, configRel, answers) {
   return config;
 }
 
-function readRegularFile(abs) {
+function readRegularFile(abs, maxBytes = loadLimits().maxDocumentBytes) {
   const st = lstatOrNull(abs);
-  if (st && st.isFile() && !st.isSymbolicLink()) {
-    return fs.readFileSync(abs);
+  if (!st || !st.isFile() || st.isSymbolicLink()) {
+    return undefined;
   }
-  return undefined;
+  const limited = readFileLimited(abs, maxBytes);
+  if (limited.exceeded) {
+    throw err('DOCUMENT_TOO_LARGE',
+      `existing document exceeds ${maxBytes} bytes: ${abs}`);
+  }
+  return limited.content;
 }
 
 // Applies a preflighted plan. Re-verifies the whole preflight immediately

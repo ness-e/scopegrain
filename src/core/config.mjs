@@ -10,7 +10,7 @@ import {
   resolveInside,
 } from './paths.mjs';
 
-import { loadOnboardingDefaults } from './policy.mjs';
+import { loadLimits, loadOnboardingDefaults } from './policy.mjs';
 
 export const KNOWN_HOSTS = ['claude', 'codex', 'opencode', 'devin'];
 export const LOCALES = ['es', 'en'];
@@ -263,7 +263,8 @@ export function loadConfig(projectRoot, configPath = DEFAULT_CONFIG_PATH) {
   if (!st.isFile()) {
     throw err('CONFIG_NOT_FILE', `config path is not a file: ${configRel}`);
   }
-  const config = validateConfigObject(readJsonFile(abs, 'config'));
+  const config = validateConfigObject(
+    readJsonFile(abs, 'config', loadLimits().maxDocumentBytes));
   assertNoCollisions(config.paths, configRel, config.hosts);
   for (const key of PATH_KEYS) {
     resolveInside(projectRoot, config.paths[key], `paths.${key}`);

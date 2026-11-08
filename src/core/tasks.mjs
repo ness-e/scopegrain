@@ -75,16 +75,38 @@ export function validateTaskShape(task, label = 'task') {
   if (!Number.isInteger(task.revision) || task.revision < 0) {
     throw err('TASK_MALFORMED', `${label}.revision must be a non-negative integer`);
   }
+  const isCanon = (v) => typeof v === 'string' && Number.isFinite(Date.parse(v))
+    && new Date(Date.parse(v)).toISOString() === v;
   for (const ts of ['createdAt', 'updatedAt']) {
-    if (typeof task[ts] !== 'string' || task[ts].trim() === '') {
-      throw err('TASK_MALFORMED', `${label}.${ts} must be a non-empty string`);
+    if (!isCanon(task[ts])) {
+      throw err('TASK_MALFORMED', `${label}.${ts} must be a canonical ISO timestamp`);
     }
   }
-  if (!Array.isArray(task.history)
+  if (Date.parse(task.createdAt) > Date.parse(task.updatedAt)) {
+    throw err('TASK_MALFORMED', `${label}.createdAt must not exceed updatedAt`);
+  }
+  if (!Array.isArray(task.history) || task.history.length === 0
       || !task.history.every((h) => h !== null && typeof h === 'object'
-        && typeof h.at === 'string' && typeof h.event === 'string')) {
+        && isCanon(h.at) && typeof h.event === 'string')) {
     throw err('TASK_MALFORMED',
-      `${label}.history must be an array of {at,event,...} records`);
+      `${label}.history must be a non-empty array of {at,event,...} records`);
+  }
+  // Chronology: nondecreasing event times within [createdAt, updatedAt];
+  // the first event IS creation, the last IS the latest update.
+  const first = Date.parse(task.history[0].at);
+  const last = Date.parse(task.history.at(-1).at);
+  let prev = first;
+  for (const h of task.history) {
+    const t = Date.parse(h.at);
+    if (t < prev || t < Date.parse(task.createdAt)
+        || t > Date.parse(task.updatedAt)) {
+      throw err('TASK_MALFORMED', `${label}.history chronology invalid`);
+    }
+    prev = t;
+  }
+  if (first !== Date.parse(task.createdAt)
+      || last !== Date.parse(task.updatedAt)) {
+    throw err('TASK_MALFORMED', `${label}.history bounds must match created/updated`);
   }
   // Stored evidence is structural data: validate it, never trust it.
   if (task.verification !== null && task.verification !== undefined) {

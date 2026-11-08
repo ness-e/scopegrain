@@ -10,6 +10,7 @@ import {
   catalogDestRel, INSTALL_ROOT, loadCatalog,
 } from '../core/catalog.mjs';
 import { resolveInside, toCanonicalRelative } from '../core/paths.mjs';
+import { KNOWN_HOSTS } from '../core/config.mjs';
 import { loadLimits } from '../core/policy.mjs';
 import { renderTemplate } from '../core/bootstrap.mjs';
 
@@ -33,13 +34,120 @@ export function loadNativePolicy({ installRoot = INSTALL_ROOT } = {}) {
   } catch {
     throw err('POLICY_MALFORMED', 'native adapters policy is not valid JSON');
   }
-  if (p === null || typeof p !== 'object' || Array.isArray(p)
-      || p.schemaVersion !== 1 || typeof p.namespace !== 'string'
-      || p.hosts === null || typeof p.hosts !== 'object'
-      || !Array.isArray(p.readOnlyAgentIds)) {
-    throw err('POLICY_MALFORMED', 'policy/native-adapters.json is malformed');
-  }
+  validateNativePolicy(p);
   return p;
+}
+
+const POLICY_KEYS = new Set([
+  'schemaVersion', 'namespace', 'activation', 'writeHostRoots',
+  'installHooks', 'installPlugins', 'readOnlyAgentIds', 'hosts',
+]);
+const HOST_KEYS = new Set([
+  'skillRoot', 'commandRoot', 'commandFormat', 'agentRoot', 'agentFormat',
+  'commandFrontmatter', 'agentFrontmatter', 'readOnlyAgentFrontmatter',
+  'invocation', 'permissionScope', 'sources',
+]);
+const CMD_FORMATS = new Set(['skill', 'markdown']);
+const AGENT_FORMATS = new Set(['markdown', 'toml-with-declarations']);
+const FORBIDDEN_SEGMENT = new Set(['.git', 'node_modules', 'legacy']);
+const HTTPS_URL = /^https:\/\/[^\s]+$/;
+const bad = (msg) => err('POLICY_MALFORMED', `native policy: ${msg}`);
+
+// Canonical relative dir via the shared normalizer: rejects absolute,
+// traversal, double-slash, dot-prefixed paths; the value must be a
+// non-root relative dir whose FIRST segment is not forbidden. '.opencode'
+// is allowed (documented native proposal destination).
+function assertCanonicalRoot(value, label) {
+  if (typeof value !== 'string' || value === '' || value === '.'
+      || value.endsWith('/')) {
+    throw bad(`${label} must be a non-root canonical relative dir`);
+  }
+  let rel;
+  try {
+    rel = toCanonicalRelative(value, label);
+  } catch {
+    throw bad(`${label} is not a canonical relative path: '${value}'`);
+  }
+  const first = rel.split('/')[0].toLowerCase();
+  if (FORBIDDEN_SEGMENT.has(first)) {
+    throw bad(`${label} may not start with '${first}'`);
+  }
+  return rel;
+}
+
+function validateNativePolicy(p) {
+  if (p === null || typeof p !== 'object' || Array.isArray(p)) {
+    throw bad('root must be an object');
+  }
+  for (const k of Object.keys(p)) {
+    if (!POLICY_KEYS.has(k)) throw bad(`unknown key '${k}'`);
+  }
+  for (const k of POLICY_KEYS) {
+    if (!(k in p)) throw bad(`missing required key '${k}'`);
+  }
+  if (p.schemaVersion !== 1) throw bad('schemaVersion must be 1');
+  // lowercase alnum segments joined by single hyphens + trailing hyphen;
+  // '--' disallowed by the segment pattern.
+  if (typeof p.namespace !== 'string'
+      || !/^[a-z0-9]+(?:-[a-z0-9]+)*-$/.test(p.namespace)) {
+    throw bad('namespace must be a lowercase-hyphenated prefix ending in -');
+  }
+  if (p.activation !== 'manual-review-only') {
+    throw bad("activation must be 'manual-review-only'");
+  }
+  for (const f of ['writeHostRoots', 'installHooks', 'installPlugins']) {
+    if (p[f] !== false) throw bad(`${f} must be exactly false`);
+  }
+  if (!Array.isArray(p.readOnlyAgentIds) || p.readOnlyAgentIds.length === 0
+      || !p.readOnlyAgentIds.every((x) => typeof x === 'string' && x !== '')
+      || new Set(p.readOnlyAgentIds).size !== p.readOnlyAgentIds.length) {
+    throw bad('readOnlyAgentIds must be unique non-empty strings');
+  }
+  const knownHosts = new Set(KNOWN_HOSTS);
+  if (p.hosts === null || typeof p.hosts !== 'object' || Array.isArray(p.hosts)
+      || Object.keys(p.hosts).length === 0) {
+    throw bad('hosts must be a non-empty object');
+  }
+  for (const [name, h] of Object.entries(p.hosts)) {
+    if (!knownHosts.has(name)) throw bad(`unknown host '${name}'`);
+    if (h === null || typeof h !== 'object' || Array.isArray(h)) {
+      throw bad(`hosts.${name} must be an object`);
+    }
+    for (const k of Object.keys(h)) {
+      if (!HOST_KEYS.has(k)) throw bad(`hosts.${name} unknown key '${k}'`);
+    }
+    if (!CMD_FORMATS.has(h.commandFormat)) {
+      throw bad(`hosts.${name}.commandFormat must be skill|markdown`);
+    }
+    if (!AGENT_FORMATS.has(h.agentFormat)) {
+      throw bad(`hosts.${name}.agentFormat must be markdown|toml-with-declarations`);
+    }
+    if (h.commandFormat === 'markdown' && typeof h.commandRoot !== 'string') {
+      throw bad(`hosts.${name}.commandRoot required for markdown commands`);
+    }
+    for (const rk of ['skillRoot', 'agentRoot']) {
+      assertCanonicalRoot(h[rk], `hosts.${name}.${rk}`);
+    }
+    if (h.commandFormat === 'markdown') {
+      assertCanonicalRoot(h.commandRoot, `hosts.${name}.commandRoot`);
+    }
+    for (const tk of ['invocation', 'permissionScope']) {
+      if (typeof h[tk] !== 'string' || h[tk] === '') {
+        throw bad(`hosts.${name}.${tk} must be a non-empty string`);
+      }
+    }
+    for (const fk of ['commandFrontmatter', 'agentFrontmatter',
+      'readOnlyAgentFrontmatter']) {
+      if (h[fk] !== undefined && typeof h[fk] !== 'string') {
+        throw bad(`hosts.${name}.${fk} must be a string`);
+      }
+    }
+    if (!Array.isArray(h.sources) || h.sources.length === 0
+        || !h.sources.every((s) => typeof s === 'string' && HTTPS_URL.test(s))
+        || new Set(h.sources).size !== h.sources.length) {
+      throw bad(`hosts.${name}.sources must be unique https URLs`);
+    }
+  }
 }
 
 function readTemplate(installRoot, rel) {
@@ -94,6 +202,15 @@ function assertSafeLiteral(value, label) {
 export function renderNativeAdapters(config, { configRel, installRoot = INSTALL_ROOT } = {}) {
   const policy = loadNativePolicy({ installRoot });
   const catalog = loadCatalog({ installRoot });
+  // Policy-declared read-only agents must actually exist in the catalog.
+  const agentIds = new Set(catalog.entries
+    .filter((e) => e.kind === 'agent').map((a) => a.id));
+  for (const id of policy.readOnlyAgentIds) {
+    if (!agentIds.has(id)) {
+      throw err('POLICY_MALFORMED',
+        `readOnlyAgentIds '${id}' has no agent in catalog`);
+    }
+  }
   const cfgPrefix = configDirPrefix(configRel);
   const tplResource = readTemplate(installRoot, TPL_RESOURCE);
   const tplAgent = readTemplate(installRoot, TPL_AGENT);
