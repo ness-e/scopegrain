@@ -6,11 +6,14 @@ import { applyPlan, preflightPlan } from '../src/core/bootstrap.mjs';
 import { createConfig } from '../src/core/config.mjs';
 import { resolveContext } from '../src/core/context.mjs';
 import {
-  getSession, prepareSession, recordSession, resumeSession,
+  getSession, prepareSession, prepareSessionRecord, recordSession, resumeSession,
   sessionFileAbs,
 } from '../src/core/sessions.mjs';
 import { createTask } from '../src/core/tasks.mjs';
 import { transitionTask } from '../src/core/transition.mjs';
+import {
+  formalFixture, lightFixture, reanswer, snapshot,
+} from './methodology-fixtures.mjs';
 import {
   VALID_ANSWERS, cleanup, exists, makeTempDir, writeJson,
 } from './helpers.mjs';
@@ -48,6 +51,65 @@ test('create is opt-in; limit required and bounded', () => {
     assert.equal(s.limit, 5);
     assert.equal(s.revision, 0);
   } finally { cleanup(dir); }
+});
+
+test('gate-denied ACT edit does not consume session bytes/revision/budget in preview or apply', () => {
+  const f = formalFixture();
+  try {
+    transitionTask(f.ctx, { id: f.task.id, to: 'ACT', expectedRevision: 0 });
+    const s = makeSession(f.ctx, f.task, 3);
+    reanswer(f, f.approvals.task, 'revoke');
+    const before = snapshot(f.dir);
+    const input = { id: s.id, expectedRevision: 0, action: 'edit', evidence: 'diff' };
+    for (const record of [prepareSessionRecord, recordSession]) {
+      assert.throws(() => record(f.ctx, input), (e) => e.code === 'SESSION_ACTION_DENIED');
+      assert.deepEqual(snapshot(f.dir), before);
+    }
+    const current = getSession(f.ctx, s.id);
+    assert.equal(current.used, 0);
+    assert.equal(current.revision, 0);
+    assert.deepEqual(current.events, []);
+  } finally { cleanup(f.dir); }
+});
+
+test('authorized scoped light edit consumes exactly one explicitly recorded operation', () => {
+  const f = lightFixture();
+  try {
+    transitionTask(f.ctx, { id: f.task.id, to: 'ACT', expectedRevision: 0 });
+    const s = makeSession(f.ctx, f.task, 3);
+    const input = { id: s.id, expectedRevision: 0, action: 'edit',
+      evidence: 'declared diff', context: 'fixture' };
+    const before = snapshot(f.dir);
+    assert.equal(prepareSessionRecord(f.ctx, input).prospective.used, 1);
+    assert.deepEqual(snapshot(f.dir), before);
+    const next = recordSession(f.ctx, input);
+    assert.equal(next.used, 1);
+    assert.equal(next.revision, 1);
+    assert.equal(next.events.length, 1);
+    assert.equal(next.events[0].action, 'edit');
+  } finally { cleanup(f.dir); }
+});
+
+test('session own lock real-close EIO cleans owned lock; foreign sentinel remains', (t) => {
+  const f = fixture();
+  try {
+    const s = makeSession(f.ctx, f.task, 3);
+    const before = snapshot(f.dir);
+    const realClose = fs.closeSync;
+    t.mock.method(fs, 'closeSync', (fd) => {
+      realClose(fd);
+      throw Object.assign(new Error('injected close EIO'), { code: 'EIO' });
+    });
+    const input = { id: s.id, expectedRevision: 0, action: 'read', evidence: 'e' };
+    assert.throws(() => recordSession(f.ctx, input), (e) => e.code === 'EIO');
+    t.mock.restoreAll();
+    assert.deepEqual(snapshot(f.dir), before);
+    const lock = sessionFileAbs(f.ctx, s.id) + '.lock';
+    fs.writeFileSync(lock, 'foreign-sentinel', { flag: 'wx' });
+    const held = snapshot(f.dir);
+    assert.throws(() => recordSession(f.ctx, input), (e) => e.code === 'SESSION_LOCKED');
+    assert.deepEqual(snapshot(f.dir), held);
+  } finally { t.mock.restoreAll(); cleanup(f.dir); }
 });
 
 test('record honors policy state, budget, CAS and atomic writes', () => {

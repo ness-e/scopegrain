@@ -7,9 +7,10 @@ import {
   catalogDestRel, getResource, loadWorkspaceCatalog, resolveInvocation,
   validateProfile,
 } from './catalog.mjs';
-import { actionsFor, loadLimits, loadPolicy } from './policy.mjs';
+import { loadLimits, loadPolicy } from './policy.mjs';
 import { getTask } from './tasks.mjs';
-import { KNOWN_HOSTS } from './config.mjs';
+import { KNOWN_HOSTS, validateMethodologyMode } from './config.mjs';
+import { evaluateTaskActions } from './methodology.mjs';
 
 const ALLOWED = new Set([
   'command', 'mode', 'taskId', 'host', 'profile', 'interaction',
@@ -87,9 +88,16 @@ export function buildWorkflowPacket(ctx, opts = {}) {
   }
   let task = null;
   let allowedActions = null;
+  const methodology = {
+    mode: validateMethodologyMode(ctx.config.methodology, 'config.methodology'),
+    available: true, taskCheck: null,
+    authenticatesEvidence: false, interceptsNativeTools: false,
+  };
   if (opts.taskId !== undefined) {
     task = getTask(ctx, opts.taskId);
-    allowedActions = actionsFor(task.state);
+    const effective = evaluateTaskActions(ctx, task);
+    allowedActions = effective.permitted;
+    methodology.taskCheck = effective.methodology;
   }
   const alias = catalog.aliases.find(
     (a) => a.kind === 'command'
@@ -146,6 +154,7 @@ export function buildWorkflowPacket(ctx, opts = {}) {
     resourceRoot: ctx.configDir,
     task,
     allowedActions,
+    methodology,
     capabilities: {
       executesProjectCommands: limits.executesProjectCommands,
       authenticatesEvidence: limits.authenticatesEvidence,

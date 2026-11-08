@@ -4,9 +4,10 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { err } from './errors.mjs';
 import { mkdirpSync, removeIfExists, writeFileExclusive } from './fsx.mjs';
-import { actionsFor, isTransitionAllowed, knownActions, knownStates, loadLimits } from './policy.mjs';
+import { isTransitionAllowed, knownActions, knownStates, loadLimits } from './policy.mjs';
 import { getTask, taskFilePath, validateTaskShape } from './tasks.mjs';
 import { validateReview, validateVerification } from './evidence.mjs';
+import { evaluateMethodology, evaluateTaskActions } from './methodology.mjs';
 
 const TRANSITION_KEYS = new Set([
   'id', 'to', 'expectedRevision', 'verification', 'review',
@@ -15,20 +16,25 @@ const TRANSITION_KEYS = new Set([
 function acquireLock(taskFile) {
   const lockPath = taskFile + '.lock';
   try {
-    const fd = fs.openSync(lockPath, 'wx');
-    fs.closeSync(fd);
+    writeFileExclusive(lockPath, '');
     return lockPath;
   } catch (e) {
     if (e && e.code === 'EEXIST') {
       throw err('TASK_LOCKED',
         'task lock exists; refusing to recover it automatically');
     }
+    if (e && e.code === 'ENOENT') {
+      throw err('TASK_NOT_FOUND', 'task directory does not exist');
+    }
     throw e;
   }
 }
 
 export function transitionTask(ctx, input) {
-  for (const key of Object.keys(input || {})) {
+  if (input === null || typeof input !== 'object' || Array.isArray(input)) {
+    throw err('INVALID_ARGS', 'transitionTask input must be an object');
+  }
+  for (const key of Object.keys(input)) {
     if (!TRANSITION_KEYS.has(key)) {
       throw err('UNKNOWN_KEY', `transitionTask received unknown key '${key}'`);
     }
@@ -37,9 +43,9 @@ export function transitionTask(ctx, input) {
   if (!knownStates().includes(to)) {
     throw err('INVALID_STATE', `unknown target state '${String(to)}'`);
   }
-  if (!Number.isInteger(expectedRevision) || expectedRevision < 0) {
+  if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) {
     throw err('REVISION_MISMATCH',
-      'expectedRevision must be a non-negative integer');
+      'expectedRevision must be a non-negative safe integer');
   }
   const attachingEvidence = input.verification !== undefined
     || input.review !== undefined;
@@ -105,6 +111,18 @@ export function transitionTask(ctx, input) {
       }],
     };
     validateTaskShape(next, `task ${id}`);
+    if (to === 'ACT' || to === 'ACCEPT') {
+      const result = evaluateMethodology(ctx, next, {
+        to, previousRevision: task.revision,
+      });
+      if (!result.allowed) {
+        const e = err('METHODOLOGY_BLOCKED',
+          `methodology gate blocked ${to}: ${result.issues[0].code}: ${result.issues[0].message}`);
+        e.issues = result.issues;
+        e.result = result;
+        throw e;
+      }
+    }
     mkdirpSync(path.dirname(file));
     tmpPath = `${file}.tmp-${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
     const serialized = JSON.stringify(next, null, 2) + '\n';
@@ -131,7 +149,7 @@ export function checkAction(ctx, taskId, action) {
     throw err('INVALID_ACTION', `unknown action '${String(action)}'`);
   }
   const task = getTask(ctx, taskId);
-  const permitted = actionsFor(task.state);
+  const { permitted } = evaluateTaskActions(ctx, task);
   return {
     id: task.id,
     state: task.state,

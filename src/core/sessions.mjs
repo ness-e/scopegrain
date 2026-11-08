@@ -165,9 +165,8 @@ export function prepareSession(ctx, input) {
 }
 
 function acquireLock(lockPath) {
-  let fd;
   try {
-    fd = fs.openSync(lockPath, 'wx');
+    writeFileExclusive(lockPath, '');
   } catch (e) {
     if (e && e.code === 'EEXIST') {
       throw err('SESSION_LOCKED',
@@ -175,7 +174,6 @@ function acquireLock(lockPath) {
     }
     throw e;
   }
-  fs.closeSync(fd);
 }
 
 function validateRecordInput(input) {
