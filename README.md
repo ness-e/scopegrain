@@ -1,181 +1,170 @@
-# TaskSystem
+# Scopegrain
 
-Harness local de ingenieria para agentes de IA, independiente del proyecto
-y con puntos de entrada para Claude Code, Codex, OpenCode y Devin Local/CLI.
+Harness portable de ingenieria proporcional para agentes de IA.
 
-**Estado: nucleo portable, catalogo y continuidad verificados localmente.**
-Hay trece procedimientos de comando, once roles neutrales, cuarenta
-skills de ingenieria, dieciocho reglas y cinco perfiles optativos.
-El estado exacto de pruebas se registra en [verificacion](docs/verification.md);
-las integraciones reales con anfitriones aun no estan certificadas.
-No se debe interpretar la compatibilidad documental como una certificacion
-de comportamiento equivalente entre productos.
+Scopegrain ayuda a equipos y operadores que usan agentes de codigo a
+organizar trabajo entre proyectos y sesiones sin depender de un unico
+anfitrion. Separa el contexto y los contratos de trabajo de las
+convenciones de cada herramienta, y ofrece una ruta ligera o formal segun
+los hechos y riesgos declarados.
 
-## Identidad
+El producto se llama Scopegrain. Los nombres tecnicos existentes
+`tasksystem`, `tasksystem-harness`, `.tasksystem` y los prefijos MCP
+`tasksystem_` se mantienen por compatibilidad; no son comandos nuevos ni
+una promesa de publicacion de paquetes.
 
-TaskSystem convierte solicitudes en tareas con contrato, alcance, estado,
-evidencia de verificacion, revision y continuidad entre sesiones.
-Separa el nucleo operativo de las convenciones del agente anfitrion y de
-la configuracion particular del repositorio gestionado.
+## Flujo de trabajo
 
-El nombre es provisional. Alternativas:
+1. **Descubrimiento de solo lectura.** Inspeccionar manifiestos e
+   instrucciones con limites de lectura; los comandos encontrados se
+   presentan como propuestas y no se ejecutan automaticamente.
+2. **Incorporacion y aprobacion.** Elegir anfitriones, metodologia, rutas y
+   preferencias de versionado. Revisar la vista previa y confirmar antes de
+   crear archivos. La aprobacion de archivos no autoriza otras operaciones.
+3. **Contexto y snapshots.** Consultar el catalogo de procedimientos, roles,
+   skills, reglas y perfiles. El proyecto conserva un snapshot de recursos
+   para construir paquetes de contexto sin activar agentes.
+4. **Tareas y planes proporcionales.** Registrar contratos, alcance y estado;
+   organizar dependencias en un DAG. Organic Driven Development (ODD) usa
+   una ruta ligera o SDD formal segun los hechos declarados.
+5. **Evidencia, revision y aceptacion.** Registrar verificaciones y review
+   o waiver. La ruta formal vincula especificacion, design, asignaciones,
+   aprobaciones e informe vigente antes de aceptar una tarea.
+6. **Continuidad y recuperacion.** Consultar el estado, reanudar sesiones
+   registradas y diagnosticar recursos del snapshot sin repetir comandos ni
+   activar trabajo automaticamente.
 
-| Nombre | Idea |
-| --- | --- |
-| TaskSystem | Continuidad con el proyecto actual; descriptivo |
-| Workframe | Marco comun para organizar el trabajo de agentes |
-| AgentFoundry | Construccion y coordinacion de capacidades |
-| RelayForge | Handoffs y ejecucion encadenada |
-| PraxisHarness | Procedimientos convertidos en trabajo verificable |
-
-No se ha comprobado disponibilidad de marcas, dominios ni paquetes.
-
-## Principios
-
-- Investigar antes de configurar; distinguir evidencias de inferencias.
-- Guardar los artefactos operativos por defecto dentro de `.tasksystem/`
-  en cada proyecto, nunca dispersos en su documentacion.
-- Preguntar que categorias versionar antes de generar reglas de exclusion.
-- Mostrar el plan de archivos antes de escribir.
-- No sobrescribir instrucciones, configuraciones ni trabajo existentes.
-- No ejecutar scripts descubiertos ni instalar dependencias automaticamente.
-- Mantener las reglas del proyecto y los permisos humanos por encima de
-  las sugerencias del harness.
-- No presentar instrucciones de texto como aislamiento de seguridad.
-- No activar servicios, red, publicacion ni operaciones Git por defecto.
+El descubrimiento no demuestra comprension semantica del codigo. La persona
+o el agente debe investigar y decidir que verificaciones son apropiadas.
+Las reglas del proyecto y los permisos del propietario prevalecen sobre las
+sugerencias del harness.
 
 ## Inicio
 
-Requisito previsto: Node.js 22 o posterior. El CLI usa modulos nativos.
-El servidor MCP es opcional y requiere sus dependencias declaradas.
+Se requiere Node.js 22 o posterior. El CLI usa modulos nativos; el servidor
+MCP opcional requiere las dependencias declaradas en `package.json`.
 
-Desde la carpeta de TaskSystem:
-
-```powershell
-node .\bin\tasksystem.mjs inspect --project "C:\ruta\mi-proyecto"
-node .\bin\tasksystem.mjs init --project "C:\ruta\mi-proyecto"
-node .\bin\tasksystem.mjs doctor --project "C:\ruta\mi-proyecto"
-```
-
-`inspect` es de solo lectura. `init` pregunta por identidad, idioma,
-anfitriones, rutas y versionado por categoria, presenta una previsualizacion
-y solicita confirmacion.
-No ejecuta los comandos que encuentre en el proyecto.
-
-Para automatizar la configuracion, se admite un archivo de respuestas:
+Desde la raiz del repositorio:
 
 ```powershell
-node .\bin\tasksystem.mjs init --project "C:\ruta\mi-proyecto" --answers "C:\ruta\respuestas.json"
+node ./bin/tasksystem.mjs inspect --project "C:\ruta\mi-proyecto"
+node ./bin/tasksystem.mjs init --project "C:\ruta\mi-proyecto"
+node ./bin/tasksystem.mjs doctor --project "C:\ruta\mi-proyecto"
 ```
 
-Sin `--apply` solo muestra el plan. Con `--answers ... --apply` se autoriza
-exclusivamente la creacion de los archivos mostrados, no la ejecucion de
-comandos ni el reemplazo de archivos existentes.
+`inspect` no escribe ni ejecuta los comandos que descubre. `init` interactivo
+pregunta por la configuracion, muestra los archivos propuestos y solicita
+confirmacion explicita; la respuesta por defecto es no. `doctor` revisa el
+estado de la configuracion y los archivos generados.
 
-Una configuracion fuera de la ruta predeterminada se indica con
-`--config "ruta/relativa/config.json"` en los comandos posteriores.
-Las rutas de artefactos deben permanecer dentro del proyecto en esta version.
+Tambien se puede usar un archivo de respuestas:
 
-## Incorporacion de un proyecto
-
-1. Inspeccionar manifiestos e instrucciones con limites de lectura.
-2. Reconocer stacks y proponer verificaciones con su archivo de origen.
-3. Confirmar rutas en el espacio del harness para planes, tareas, informes,
-   reviews, investigaciones, decisiones, memoria y estado operativo.
-4. Seleccionar los agentes anfitriones; no asumir que estan instalados.
-5. Elegir categorias que se versionan; revisar archivos, exclusiones Git
-   propuestas y posibles conflictos, sin alterar el `.gitignore` de raiz.
-6. Confirmar y crear la configuracion y los puntos de entrada.
-7. Abrir una sesion del agente y confirmar que cargo las instrucciones.
-8. Aprobar y ejecutar manualmente las verificaciones apropiadas.
-
-El descubrimiento de manifiestos no sustituye una investigacion semantica
-del codigo. Las instrucciones generadas exigen completar esa investigacion
-con el agente antes de implementar una tarea.
-
-## Estructura
-
-```text
-bin/                  Entrada del CLI
-src/core/             Configuracion, rutas y estado de tareas
-src/discovery/        Inspeccion local sin ejecutar codigo del proyecto
-src/adapters/         Renderizado de integraciones por anfitrion
-src/mcp/              Herramientas MCP de consulta, opcionales
-catalog/              Recursos activos y procedencia heredada con hashes
-commands/             Los trece procedimientos portables
-agents/               Once responsabilidades neutrales
-rules/                Obligaciones generales y especificas optativas
-references/           Guias de consulta, no politicas implicitas
-profiles/             Core, web, Rust, Python y bases de datos
-policy/               Transiciones, limites, defaults y proyeccion nativa
-templates/            Instrucciones portables y contratos
-skills/               Procedimientos genericos seleccionados
-docs/                 Arquitectura, incorporacion, seguridad y migracion
-tests/                Pruebas del nuevo nucleo, no del archivo heredado
-legacy/               Procedencia y material original fuera del circuito activo
+```powershell
+node ./bin/tasksystem.mjs init --project "C:\ruta\mi-proyecto" --answers "C:\ruta\respuestas.json"
 ```
+
+Con `--answers` y sin `--apply`, `init` solo presenta el plan. Agregar
+`--apply` autoriza la creacion de los archivos propuestos, no la ejecucion
+de comandos ni el reemplazo de contenido existente. `--yes` y `--force` no
+son opciones de bypass. Las rutas de artefactos deben permanecer dentro del
+proyecto; una configuracion alternativa se indica con `--config`.
+Consultar el [ejemplo de respuestas](examples/answers.json) y su
+[esquema](schemas/answers.schema.json).
+
+## Organic y SDD
+
+La metodologia se selecciona al incorporar el proyecto:
+
+| Modo | Uso |
+| --- | --- |
+| `manual` | Compatibilidad con tareas V1, sin migracion implicita. |
+| `organic-sdd` | Ruta ligera o formal segun los hechos declarados. |
+| `sdd` | Referencias formales para trabajo de cambio. |
+
+Una configuracion antigua sin metodologia se interpreta como `manual` sin
+reescribir sus bytes. En un proyecto interactivo nuevo se propone
+`organic-sdd`, sujeto a confirmacion. Los controles de una tarea V2 no se
+desactivan por cambiar el modo del proyecto a `manual`.
+
+La clasificacion considera intencion, autorizacion, comprension,
+incertidumbre, riesgo y continuidad declarados; no se basa en el numero de
+lineas del diff. Una consulta de solo lectura no autoriza cambios. La
+autorizacion ausente o rechazada, la comprension insuficiente, la
+incertidumbre pendiente o el riesgo desconocido bloquean la ruta de cambio.
+Una tarea ligera no requiere inventar artefactos formales.
+
+En SDD, cada tarea formal, incluidas las preparatorias, necesita al menos un
+escenario asignado. Un plan debe cubrir todos los escenarios de su
+especificacion; las tareas comprueban sus propias asignaciones y sus
+dependencias. ACT y ACCEPT revalidan las condiciones y aprobaciones
+aplicables. Una consulta metodologica no sustituye permisos humanos ni
+permisos del anfitrion. Ver [Organic y SDD](docs/methodology.md).
 
 ## Comandos y continuidad
 
 ```powershell
-node .\bin\tasksystem.mjs catalog list command
-node .\bin\tasksystem.mjs catalog legacy skill
-node .\bin\tasksystem.mjs pipeline --project "C:\ruta\mi-proyecto" --mode plan
-node .\bin\tasksystem.mjs plan create --project "C:\ruta\mi-proyecto" --input plan.json
-node .\bin\tasksystem.mjs plan next entrega --project "C:\ruta\mi-proyecto"
+node ./bin/tasksystem.mjs catalog list command
+node ./bin/tasksystem.mjs pipeline --project "C:\ruta\mi-proyecto" --mode plan
+node ./bin/tasksystem.mjs plan create --project "C:\ruta\mi-proyecto" --input plan.json
+node ./bin/tasksystem.mjs plan next entrega --project "C:\ruta\mi-proyecto"
 ```
 
-Los aliases `pipeline`, `spec`, `backlog`, `status`, `audit`, `harness`,
-`research`, `ship`, `rollback`, `code-simplify`, `codeGraph`, `cleanCA` y
-`webperf` entregan un paquete de procedimiento y contexto. No ejecutan una
-LLM ni scripts: el anfitrion interpreta el trabajo autorizado.
+Los aliases de workflow, como `pipeline`, `spec`, `audit` o `research`,
+entregan procedimientos y contexto; no ejecutan modelos, agentes ni scripts.
+Los planes guardan dependencias; los artefactos conservan especificaciones,
+designs, informes y otros registros. Las sesiones registran operaciones y
+presupuesto explicito; reanudarlas recupera contexto, no repite acciones.
+Las creaciones JSON usan vista previa por defecto y requieren `--apply`;
+las operaciones historicas de tarea mantienen su comportamiento previo.
 
-`plan` persiste un DAG de tareas; `artifact` guarda specs, informes, reviews,
-investigacion, decisiones, lecciones y handoffs; `session` registra
-operaciones con un presupuesto explicito y recupera contexto real.
-Salvo las operaciones historicas de tarea, las nuevas escrituras requieren
-`--apply`; sin el flag se validan y previsualizan sin escribir.
+Los ejemplos antiguos de tareas y planes sin referencias formales
+corresponden a `manual`; el ejemplo de respuestas incluido selecciona
+`organic-sdd`. Consultar [workflows y continuidad](docs/workflows.md) y
+[flujo de tareas](docs/task-workflow.md) antes de aplicar operaciones.
 
-La [guia de workflows](docs/workflows.md) detalla formatos y limites.
-El [mapa de migracion](docs/component-migration.md) distingue recursos
-activos, reemplazos nuevos y material original todavia no aprobado.
+## Anfitriones y limites de confianza
 
-## Compatibilidad y limites
+Se generan propuestas, comprobadas en fixtures locales, para Claude Code,
+Codex, OpenCode, Devin Local/CLI y Google Antigravity. Los puentes nativos
+y fragmentos MCP son propuestas para revision y activacion manual, no
+integraciones certificadas ni una garantia de equivalencia de permisos o
+comportamiento. Devin Cloud no se considera equivalente a Local/CLI. Ver
+[formatos nativos](docs/native-hosts.md).
 
-- Claude Code: instrucciones de proyecto y propuesta de servidor MCP.
-- Codex: instrucciones de proyecto y propuesta de configuracion MCP TOML.
-- OpenCode: instrucciones de proyecto y propuesta MCP con formato documentado.
-- Devin Local/CLI: instrucciones y propuesta MCP con formato documentado.
-- Devin Cloud no se considera equivalente a Local/CLI.
-- La configuracion MCP se entrega como propuesta para revision; no se
-  mezcla automaticamente con configuraciones existentes.
-- Se generan puentes nativos revisables, no se instalan hooks ni se activan
-  perfiles/permisos automaticamente. Ver [formatos nativos](docs/native-hosts.md).
-- El estado se controla para las operaciones que pasan por TaskSystem;
-  no se interceptan todas las herramientas nativas del anfitrion.
-- Las evidencias y revisiones aportadas por el usuario/agente son
-  declaraciones registradas, no pruebas de identidad criptografica.
-- El servidor MCP no ejecuta shell ni modifica las tareas.
-- Los presupuestos cuentan operaciones registradas, no todas las llamadas
-  del anfitrion, tokens ni gasto monetario.
-- No se incluye una licencia de redistribucion del material heredado.
-  El paquete permanece privado hasta resolver procedencia y licencias.
+- No hay ejecutor de modelos ni ejecucion automatica de agentes o SDK de
+  anfitriones. Las instrucciones no son un sandbox ni interceptan todas las
+  herramientas nativas.
+- El MCP opcional ofrece consultas de solo lectura; no ejecuta shell ni
+  modifica tareas. Los presupuestos cuentan operaciones registradas, no
+  todas las llamadas del anfitrion, tokens ni gasto.
+- Los hashes vinculan registros y evidencia declarada; no prueban ejecucion
+  real, identidad de actores o revisores, ni el contenido completo del
+  worktree. Una review independiente o waiver es una declaracion del proceso.
+- Las comprobaciones de rutas y locks no constituyen una transaccion
+  serializable entre todos los archivos ni aislamiento del sistema operativo.
+  Los cuerpos libres pueden contener datos sensibles y deben revisarse antes
+  de persistirse o compartirse.
+- No se ejecutan automaticamente comandos descubiertos, instalaciones,
+  publicaciones u operaciones Git. Ver el
+  [modelo de seguridad](docs/security.md).
 
-## Desarrollo y verificacion
+## Verificacion
 
-Los comandos de pruebas se preparan para ejecucion manual:
+La suite local completa termino con 522 pruebas aprobadas y ninguna fallida
+en Windows, Node.js v26.8.1 y npm 11.6.0; la tanda focalizada CLI/MCP
+registro 31 aprobadas. El alcance, los resultados historicos y la reproduccion
+se documentan en [verificacion](docs/verification.md). Estas pruebas no
+certifican los cinco anfitriones ni una ejecucion real del trabajo declarado.
+El [workflow de GitHub Actions](.github/workflows/verify.yml) se activa solo
+manualmente y aun no se ha ejecutado.
 
-```powershell
-npm test
-```
+## Codigo y licencia
 
-Con autorizacion expresa se ejecutaron las pruebas y smoke tests de la
-primera base: 73 pruebas correctas, ninguna fallida ni omitida.
-La ampliacion supera 145 pruebas y 41 comprobaciones end-to-end, incluido
-MCP por stdio. No confundir esos resultados con certificacion dentro de
-los cuatro anfitriones ni con auditoria de las skills originales.
-Consultar [verificacion](docs/verification.md) para entorno, evidencia y
-limites. No instalar ni arrancar el servidor MCP sin revisar sus dependencias.
+El repositorio puede estar disponible para lectura de su codigo fuente, pero
+esa disponibilidad no concede una licencia de codigo abierto ni de
+redistribucion. `package.json` conserva `private: true` y `UNLICENSED`;
+no se publica un paquete npm. El material heredado permanece fuera del
+circuito activo y sujeto a revision de procedencia y derechos.
 
 ## Documentacion
 
@@ -186,11 +175,9 @@ limites. No instalar ni arrancar el servidor MCP sin revisar sus dependencias.
 - [Migracion y limitaciones conocidas](docs/migration.md)
 - [Destino de comandos, agentes, skills, reglas y referencias](docs/component-migration.md)
 - [Flujo de tareas y evidencias](docs/task-workflow.md)
-- [Verificacion: resultados y reproduccion](docs/verification.md)
+- [Organic, SDD, aprobaciones y limites de evidencia](docs/methodology.md)
+- [Workflows y continuidad](docs/workflows.md)
+- [Verificacion y reproduccion](docs/verification.md)
+- [Informe completo del sistema](docs/system-report.md)
 - [Contrato del producto](docs/product-contract.md)
 - [Contrato de implementacion](docs/implementation.md)
-- [Ejemplo de respuestas](examples/answers.json) ·
-  [esquema de respuestas](schemas/answers.schema.json)
-
-Este proyecto procede de una copia del harness original. La carpeta
-`.opencode` de VantaDB no forma parte de este trabajo y no debe modificarse.

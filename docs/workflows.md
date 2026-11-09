@@ -27,14 +27,16 @@ destinos de artefactos relativos a la raiz del proyecto.
 El perfil core siempre complementa cualquier perfil elegido.
 No se ejecuta automaticamente ninguna instruccion ni se crea un agente.
 
-Los trece aliases usan la misma interfaz `workflow`, no implementaciones
+Los aliases compatibles usan la misma interfaz `workflow`, no implementaciones
 divergentes. Los modos declarados se validan; nombres o modos desconocidos
 se rechazan. Los perfiles web/rust/python/database son optativos y no
 instalan stacks, herramientas ni servicios.
 
 ## Planes con dependencias
 
-Entrada de `plan create --input plan.json`:
+El siguiente ejemplo V1 de `plan create --input plan.json` requiere modo
+`manual`. En modo Organic/SDD, usar referencias estructuradas reales
+`specId`, `designId` y escenarios por tarea; ver [metodologia](methodology.md).
 
 ```json
 {
@@ -81,6 +83,7 @@ persistirlo (`DOCUMENT_TOO_LARGE`).
 | Tipo | Destino configurado |
 | --- | --- |
 | spec | plans/specs |
+| design (V2) | plans/designs |
 | report | reports |
 | review | reports/reviews |
 | research | research |
@@ -91,6 +94,29 @@ persistirlo (`DOCUMENT_TOO_LARGE`).
 Por defecto, todos esos destinos viven bajo `.tasksystem/`, no `docs/`.
 Un proyecto puede conservar rutas antiguas explicitamente elegidas; nunca
 se mueven o eliminan archivos existentes por un cambio de defaults.
+
+El `spec` generico V1 no satisface una referencia formal. Las operaciones
+tipadas distinguen especificacion estructurada, design ligado a su digest
+e informe `report` ligado a una revision REVIEW. Un outcome no es un nuevo
+tipo de carpeta ni una certificacion de los archivos citados.
+
+## Aprobaciones y acciones
+
+La nueva superficie CLI/MCP tiene una tanda focalizada ejecutada y la suite
+integral local se completo; sus resultados y limites se describen en
+[verificacion](verification.md). Los pilotos nativos siguen pendientes.
+
+Las operaciones `approval target/create/show/answer` separan identificacion
+del contenido, pregunta, lectura y respuesta. Previsualizar una respuesta
+no modifica el consentimiento persistido. Aplicarla requiere revision y
+`expectedTargetDigest` actuales, revalidados bajo lock; no es un overwrite
+generico ni una aprobacion de herramientas nativas.
+
+`methodology check` consulta ACT o ACCEPT sin escribir. El paquete de
+workflow incluye modo y resultado metodologico y obtiene sus acciones de
+la misma evaluacion. Una revocacion elimina `edit` cuando corresponde;
+consultar los metadatos no sustituye la arista del workflow o los permisos
+del anfitrion. Los presupuestos de sesiones usan esas acciones efectivas.
 
 ## Sesiones y recuperacion
 

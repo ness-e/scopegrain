@@ -1,26 +1,33 @@
-# TaskSystem: contrato de implementacion
+# Scopegrain: contrato de implementacion
 
 Estado: aprobado como base de trabajo por la solicitud de crear el proyecto.
-Nombre provisional: TaskSystem. No implica elegir marca ni licencia.
+Scopegrain es el nombre del producto; TaskSystem se conserva como nombre
+tecnico por compatibilidad. Esto no concede una licencia de redistribucion.
 
 Este contrato documenta el nucleo inicial y sus invariantes. Las extensiones
 vigentes se especifican en [workflows](workflows.md),
 [integraciones nativas](native-hosts.md) y
-[mapa de migracion](component-migration.md). Los requisitos adicionales
+[mapa de migracion](component-migration.md), con
+[Organic y SDD](methodology.md) para los gates actuales. Los requisitos adicionales
 incluyen catalogo canonico, planes DAG, artefactos, sesiones con presupuesto
 registrado, workspace `.tasksystem/` y versionado preguntado por categoria.
 
 ## Limites de esta entrega
+
+Las restricciones y autorizaciones narradas en esta seccion son historicas
+del contrato inicial; no resumen las autorizaciones vigentes.
 
 Crear una base nueva, ejecutable y generica en esta carpeta. Preservar la copia
 heredada, pero no ejecutar ni convertir por sustitucion masiva sus instrucciones.
 No tocar ninguna ruta de VantaDB ni su .opencode. En la construccion inicial
 no se autorizaron tests, builds, linters, scripts, servicios ni instalaciones.
 Posteriormente el propietario autorizo las pruebas y comprobaciones locales;
-sus resultados estan en [verificacion](verification.md). Esto no autoriza
-instalaciones, publicacion, push ni creacion de remotos. Se autorizo
-separadamente consultar documentacion oficial en modo lectura para validar
-los formatos nativos; no activar integraciones externas.
+sus resultados estan en [verificacion](verification.md). En esa etapa, esas
+pruebas no autorizaban instalaciones, publicacion, push ni creacion de
+remotos. Se autorizo separadamente consultar documentacion oficial en modo
+lectura para validar los formatos nativos; no activar integraciones externas.
+Las pruebas y arranques posteriores requerian un comando propuesto y
+ejecucion manual del propietario o autorizacion explicita acotada.
 
 ## Arquitectura decidida
 
@@ -30,11 +37,13 @@ MCP opcional: usar las dependencias ya copiadas @modelcontextprotocol/sdk
 Nucleo sincronico pequeno con errores {code,message}; errores de CLI a stderr
 y exitCode=1, JSON de resultados a stdout. No llamar child_process.
 
-Separar src/core, src/discovery, src/adapters, src/mcp y bin. Toda ruta de
+Separar src/core, src/discovery, src/hosts, src/mcp y bin; src/adapters
+conserva entradas de compatibilidad. Toda ruta de
 proyecto viene de --project y/o una configuracion explicitamente cargada,
 nunca de ascender desde la instalacion. No depender del directorio .opencode.
-Las instrucciones estan en fuentes canonicas commands/, agents/, skills/,
-rules/, references/ y templates/; no duplicarlas como literales ejecutables.
+Las instrucciones estan en resources/{commands,agents,skills,rules,references,
+prompts}/ y templates/, indexadas en resources/manifest.json; no duplicarlas
+como literales ejecutables.
 La politica canonica es policy/workflow.json; no duplicar valores en el codigo.
 
 ## Conservacion

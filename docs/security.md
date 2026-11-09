@@ -10,10 +10,11 @@ alcance probado y las limitaciones se registran en
   ni expande comandos descubiertos. Las propuestas llegan con
   `approved:false`.
 - **Sin red:** ningun modulo abre sockets; el servidor MCP usa stdio.
-- **Rutas contenidas:** toda ruta almacenada es relativa al proyecto, sin
+- **Rutas contenidas:** las rutas de artefactos son relativas al proyecto, sin
   `..`, NUL, dos puntos (unidades/ADS), absolutas POSIX ni win32, UNC ni
   segmentos vacios o `.`. Los prefijos `.git`, `node_modules`, `legacy` y
-  `.opencode` estan vetados como destinos.
+  `.opencode` estan vetados como destinos. Los fragmentos MCP machine-local
+  si contienen rutas absolutas revisables de instalacion/proyecto.
 - **Anti-enlaces:** `lstat` en cada ancestro existente; symlinks/junctions
   se rechazan incluso cuando apuntan dentro. El root elegido debe existir y
   ser directorio real (no enlace).
@@ -32,8 +33,10 @@ alcance probado y las limitaciones se registran en
   el tamano serializado antes de persistir y al leer, segun la politica
   de limites. Los temporales solo se limpian tras adquirir su propiedad
   por apertura exclusiva; un fallo EEXIST no autoriza borrar el existente.
-- **Sin secretos en artefactos:** los fragmentos MCP contienen solo rutas y
-  nombres; init nunca pregunta por secretos.
+- **Sin credenciales generadas:** los fragmentos MCP contienen rutas y
+  nombres; init nunca pregunta por secretos. Los cuerpos libres no tienen
+  un detector universal de secretos: requieren revision y redaccion aprobada
+  antes de persistir solicitudes sensibles.
 - **Sin flags de bypass:** `--yes` y `--force` se rechazan; no hay escritura
   implicita en sesiones sin TTY.
 
@@ -56,6 +59,11 @@ alcance probado y las limitaciones se registran en
   una transaccion distribuida con las herramientas nativas del anfitrion.
 - **Scope y evidencia declarados.** Que un check figure como `pass` no
   prueba que se ejecuto; la confianza la aporta el proceso humano.
+- **Hashes, no observacion del producto.** Los bindings y aprobaciones
+  detectan deriva de registros/payloads validados, no cambios de todos los
+  archivos citados o del worktree. No autentican actor/revisor, no bloquean
+  los editores ni forman una transaccion serializable entre archivos.
+  Los gates y sus limites se describen en [Organic y SDD](methodology.md).
 - **El archivo legacy no es seguro por omission.** `legacy/opencode/` puede
   contener secretos historicos; esta fuera del circuito activo y de Git,
   pendiente de auditoria antes de cualquier distribucion.

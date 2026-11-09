@@ -1,7 +1,7 @@
 # Compatibilidad y fuentes oficiales
 
 Alcance: puntos de entrada, catalogo portable, CLI/MCP de consulta y
-propuestas de puentes nativos para cuatro anfitriones. La compatibilidad documental no
+propuestas de puentes nativos para cinco anfitriones. La compatibilidad documental no
 certifica comportamiento equivalente entre productos.
 
 ## Matriz por anfitrion
@@ -12,6 +12,7 @@ certifica comportamiento equivalente entre productos.
 | Codex | `AGENTS.md` (raiz) | `integrations/codex-mcp.toml` (`[mcp_servers.tasksystem]`) | Documental; el proyecto requiere trust en Codex |
 | OpenCode V2 | `AGENTS.md` (raiz) | `integrations/opencode-mcp.json` (`mcp.servers.tasksystem`, `disabled:true`) | Documental; propuesta V1 separada, no activar ambas |
 | Devin Local/CLI | `AGENTS.md` (raiz) | `integrations/devin-mcp.json` (`mcpServers.tasksystem` sin `type`) | Documental para Local/CLI; Devin Cloud no se considera equivalente |
+| Google Antigravity | Propuestas App/CLI e IDE diferenciadas | `integrations/antigravity-mcp.json` y propuesta nativa revisable | Generacion local; sin piloto nativo ni agentes asumidos en IDE |
 
 ## Notas por fuente
 
@@ -33,6 +34,10 @@ certifica comportamiento equivalente entre productos.
   Local comparte las customizaciones del CLI. El fragmento sigue la forma
   `mcpServers` con `command`/`args` del archivo de configuracion MCP
   documentado. No se afirma paridad con Devin Cloud.
+- **Antigravity:** App/CLI e IDE no se equiparan. La propuesta App/CLI
+  incluye roles; la de IDE solo skills. La convencion `.agents/` compartida
+  con otros productos no da aislamiento. Ver
+  [variantes, permisos y fuentes](native-hosts.md).
 
 ## Lo que NO se hace
 
@@ -46,7 +51,9 @@ certifica comportamiento equivalente entre productos.
 - `serverPath` y la ruta del proyecto (`--project`) son absolutas y
   machine-local; `--config` va como token relativo POSIX contenido en el
   proyecto (es lo que `loadConfig` acepta):
-  regenerarlas tras mover la instalacion o el proyecto.
+  revisar y reconciliar las propuestas tras mover la instalacion o el
+  proyecto. `doctor` informa las referencias obsoletas; no las corrige
+  silenciosamente ni activa el destino nuevo.
 
 ## Fuentes oficiales consultadas
 

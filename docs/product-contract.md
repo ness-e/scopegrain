@@ -62,7 +62,7 @@ instalaciones, escritura fuera del alcance ni relajacion de permisos.
 
 ## Personalizacion inicial y evolucion
 
-Disponibles como datos de configuracion: nombre, idioma, anfitriones,
+Disponibles como datos de configuracion: nombre, idioma, anfitriones, metodologia,
 rutas, versionado por categoria y propuestas de verificacion. Los
 artefactos operativos usan `.tasksystem/` por defecto; la documentacion
 del producto es un entregable separado. Las decisiones del propietario no
@@ -78,6 +78,14 @@ sesiones actuales se describen en [workflows](workflows.md) y
 [mapa de migracion](component-migration.md). Son extensiones de la primera
 base, no importaciones implicitas del archivo original.
 
+La ampliacion incluye Google Antigravity y variantes de propuestas nativas,
+sin certificacion dentro de ninguno de los cinco anfitriones. Organic/SDD
+agrega clasificacion proporcional, referencias y aprobaciones por contenido,
+cobertura asignada e informes vinculados; no un ejecutor de agentes ni una
+garantia de que las declaraciones del operador sean verdaderas.
+Estado de implementacion y alcance de verificacion en
+[metodologia](methodology.md) y [verificacion](verification.md).
+
 No cambiar la marca, la rama Git de otro proyecto ni su sistema de
 publicacion para incorporarlo al harness.
 
@@ -86,9 +94,9 @@ publicacion para incorporarlo al harness.
 | Fallo | Impacto | Tratamiento inicial | Riesgo residual |
 | --- | --- | --- | --- |
 | Ejecutar un script malicioso al detectar el stack | Ejecucion arbitraria | Scanner sin shell; comandos solo propuestos | El humano o agente puede ejecutarlo despues |
-| Rutas ../, unidades o enlaces | Escritura fuera del alcance | Validacion de contencion y rechazo de enlaces | Carrera con procesos locales privilegiados |
+| Rutas ../, unidades o enlaces | Escritura fuera del alcance | Validacion de contencion y rechazo de enlaces | Carrera con procesos locales con permiso de escritura |
 | Sustituir AGENTS o configuracion del usuario | Perdida de reglas y permisos | Create-only, preflight completo y conflicto explicito | Fusion manual necesaria |
-| Reutilizar una revision tras editar | Aceptar codigo no revisado | ACT invalida evidencia y aprobacion | Cambios fuera del flujo no son interceptados |
+| Reutilizar una revision tras editar | Aceptar codigo no revisado | ACT invalida verificacion y review; ACCEPT revalida bindings actuales | Cambios del producto fuera del flujo no son observados |
 | Dos escritores actualizan una tarea | Estado perdido | Lock exclusivo y revision esperada | No hay coordinacion distribuida |
 | Suponer un stack o herramienta inexistente | Comandos equivocados | Evidencia explicita; desconocidos no reciben defaults de dominio | La deteccion es limitada y debe revisarse |
 | Equiparar Markdown con seguridad | Falsa garantia | Separar protocolo, validacion y permisos nativos | El anfitrion puede omitir el protocolo |

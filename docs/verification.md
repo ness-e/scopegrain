@@ -1,13 +1,54 @@
 # Verificacion
 
-## Ejecucion local autorizada
+## Estado Actual
+
+La suite integral local posterior a la migracion y Organic/SDD termino con
+522 pruebas aprobadas en Windows, Node.js v26.8.1 y npm 11.6.0. No sumar
+tandas acotadas ni resultados historicos como si fueran una suite unica.
+
+| Bloque | Referencia | Evidencia observada |
+| --- | --- | --- |
+| Evidencia, relaciones formales y outcomes | `4a2f3e9` | 73 pass, 0 fail, 0 skipped |
+| Gates, transiciones, acciones y sesiones | `9109755` | 111 pass, 0 fail, 0 skipped |
+| Nueva interfaz CLI/MCP | Tanda focalizada | Exit 0: 31 pass, 0 fail, 0 skipped, 0 cancelled |
+| Suite integral inicial | `npm test` | Exit 1: 520 pass, 1 fail, 0 skipped, 0 cancelled |
+| Reparacion focalizada | `tests/review-corrections.test.mjs` | Exit 0: 12 pass, 0 fail, 0 skipped, 0 cancelled |
+| Suite integral posterior | `npm test` | Exit 0: 522 pass, 0 fail, 0 skipped, 0 cancelled |
+| Pilotos en anfitriones | Pendientes | No certificados |
+
+Logs locales conservados en `.tasksystem/verification/organic-sdd/`:
+`c2d1-green-final.log`, `c2d2-green-final.log`, sus RED causales y diffs
+completos. Estan ignorados por Git; no acompanan automaticamente un clon.
+La salida completa de la tanda CLI/MCP esta en
+`.tasksystem/verification/publication-cli-mcp-1794188607.log`, tambien
+ignorada y no incluida automaticamente en un clon publico.
+La integral inicial, la reparacion focalizada y la integral posterior estan,
+respectivamente, en `.tasksystem/verification/publication-full-suite-1794189732.log`,
+`.tasksystem/verification/publication-review-corrections-1794190234.log` y
+`.tasksystem/verification/publication-full-suite-recheck-1794190295.log`.
+Estos logs tambien permanecen ignorados y no acompanan un clon publico.
+
+La integral inicial fallo porque una prueba obsoleta esperaba `INVALID_ARGS`
+para `catalog list --project`, opcion ya admitida; el contexto sin
+configuracion devolvio `CONFIG_NOT_FOUND`. Se corrigio la prueba y se anadio
+una regresion del snapshot del proyecto, sin cambiar el runtime. La tanda
+focalizada y la integral posterior son ejecuciones separadas.
+
+Los checks y reviews sinteticos de fixtures prueban el mecanismo, no una
+ejecucion nativa, identidad autenticada o un resultado real del producto.
+
+Las siguientes tandas de pruebas/arranques se proponen al propietario para
+ejecucion manual o autorizacion explicita. Las ejecuciones documentadas
+arriba no autorizan automaticamente repetirlas.
+
+## Entorno De Los Gates Historicos
 
 Se ejecutaron las verificaciones con autorizacion expresa del propietario,
 sin instalaciones, red, push ni cambios al proyecto de origen.
 Entorno observado: Windows, Node.js v26.8.1 y npm 11.6.0. No se ha probado
 todavia la version minima declarada (Node.js 22) ni otros sistemas operativos.
 
-## Gate de la ampliacion portable
+## Gate Historico De La Ampliacion Portable
 
 Ejecucion registrada el 2026-11-07 (UTC). Evidencia local:
 `.tasksystem/verification/final-gate/`.
@@ -80,7 +121,7 @@ la evidencia local no acompana automaticamente a un clon.
 
 En esa primera base las pruebas MCP no conectaban un transporte.
 La ampliacion incorpora las comprobaciones in-memory y stdio indicadas
-en el gate actual.
+en el gate historico descrito.
 
 ## Reproduccion
 
@@ -94,9 +135,11 @@ la mera presencia de esta guia.
 node --version   # se espera >= 22
 ```
 
-El CLI no requiere dependencias. Los tests de MCP requieren `node_modules`
-con `@modelcontextprotocol/sdk` 1.27.1 y `zod` 4.5.4; sin instalar, ese
-archivo de test se salta con razon documentada.
+El CLI no requiere dependencias. La suite completa necesita las dependencias
+MCP declaradas: `@modelcontextprotocol/sdk` 1.27.1 y `zod` 4.5.4.
+Sin ellas, `mcp.test.mjs` puede omitir sus casos opcionales con razon
+documentada, pero `mcp-methodology.test.mjs` requiere esas dependencias;
+no se promete una ejecucion completa de `npm test` sin ellas.
 
 ## Suite completa
 
@@ -109,6 +152,16 @@ node --test tests/*.test.mjs
 ```
 
 ## Verificacion por area (mas acotada)
+
+Tandas Organic/SDD reproducibles. La tercera corresponde a la ejecucion
+CLI/MCP focalizada indicada arriba; las demas son resultados por bloque,
+no una nueva suite integral:
+
+```powershell
+node --test tests/evidence.test.mjs tests/formal-bindings.test.mjs tests/outcomes.test.mjs tests/structured-boundaries.test.mjs
+node --test tests/methodology-gates.test.mjs tests/transition-methodology.test.mjs tests/workflows.test.mjs tests/sessions.test.mjs
+node --test tests/cli-methodology.test.mjs tests/mcp-methodology.test.mjs tests/mcp.test.mjs
+```
 
 ```powershell
 node --test tests/paths.test.mjs      # contencion, traversal, symlinks
@@ -164,9 +217,13 @@ un proyecto real ni sobre este repo:
 mkdir .\tests\.tmp\humo-proyecto
 node .\bin\tasksystem.mjs init --project .\tests\.tmp\humo-proyecto --answers .\examples\answers.json --apply
 node .\bin\tasksystem.mjs doctor --project .\tests\.tmp\humo-proyecto
-node .\bin\tasksystem.mjs task create --project .\tests\.tmp\humo-proyecto --title "Prueba" --contract "C" --author "ctx-a"
 node .\bin\tasksystem.mjs task list --project .\tests\.tmp\humo-proyecto
 ```
+
+`examples/answers.json` selecciona `organic-sdd`. No usar creaciones V1
+sin metadatos como si fueran validas en ese modo. Crear tareas con el
+contrato apropiado o elegir `manual` explicitamente en respuestas de un
+fixture nuevo; no modificar silenciosamente una configuracion existente.
 
 Tambien se puede ejecutar `init` interactivo sobre el fixture (en una
 terminal real): pregunta nombre, idioma, anfitriones, ruta de config y las

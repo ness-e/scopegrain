@@ -17,10 +17,10 @@ El puntero `.git` original apuntaba a un gitdir externo
 
 - **No se importa el archivo original:** ningun recurso original se activa
   por copia ni por sustitucion masiva de nombres.
-- **Fuentes nuevas:** trece procedimientos, once roles neutrales, cuarenta
-  skills (tres iniciales y treinta y siete procedimientos de ingenieria),
-  dieciocho reglas, veinticuatro referencias y cinco perfiles. Son fuentes
-  canonicas nuevas, no certificaciones de equivalencia con cada original.
+- **Fuentes nuevas:** procedimientos separados, roles neutrales, skills,
+  reglas, referencias, prompts y perfiles en `resources/manifest.json`.
+  Los aliases conservan compatibilidad sin duplicar la fuente editable.
+  No certifican equivalencia con cada recurso original.
 - **Nucleo nuevo:** CLI, descubrimiento, config, bootstrap, adaptadores,
   tareas, catalogo, workflows, planes, artefactos, sesiones, versionado,
   doctor y MCP son implementaciones nuevas; no son una traduccion directa
@@ -48,6 +48,9 @@ El puntero `.git` original apuntaba a un gitdir externo
   proyecto ni registro automatico.
 - No hay migracion automatica desde configuraciones del material heredado.
 - `doctor` informa estado, no repara; `legacy` nunca se auto-carga.
+- Un `--input` cuyo archivo no existe puede devolver `INTERNAL` para el
+  error `ENOENT`. Es una limitacion de taxonomia de errores pendiente de
+  seguimiento, no una autorizacion ni una excepcion de permisos.
 - Hay presupuesto de operaciones registradas por sesion y comprobacion de
   politica antes de agregarlas. No contabiliza todas las llamadas nativas,
   tokens ni gasto, y no bloquea herramientas usadas fuera de TaskSystem.
@@ -61,7 +64,7 @@ El puntero `.git` original apuntaba a un gitdir externo
 | --- | --- |
 | Catalogos de skills con conteos distintos (197 archivos, manifiesto 196, indice 195) | Inventario individual congelado; fuentes activas registradas en manifest.json, no en indices manuales divergentes |
 | C0 documentado con 15 llamadas y codigo con 40 | Limite de sesion explicito y acotado; no equivale a contar llamadas nativas |
-| Nombres `metasearchmcp_*` antiguos mezclados con `metasearch_*` | No se importan listas heredadas; trece herramientas MCP propias de consulta |
+| Nombres `metasearchmcp_*` antiguos mezclados con `metasearch_*` | No se importan listas heredadas; MCP propio de consulta, sin mutaciones |
 | Sandbox de PowerShell sin aislamiento real | No se integra ni se presenta como garantia de seguridad |
 | Reglas, comandos y rutas particulares de VantaDB | Core neutral y perfiles optativos nuevos; originales bloqueados fuera del runtime |
 

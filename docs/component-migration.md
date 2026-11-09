@@ -12,10 +12,10 @@ de los manifiestos:
 
 | Componente heredado | Inventario capturado | Tratamiento actual |
 | --- | --- | --- |
-| `commands/` | 13 archivos Markdown | Trece procedimientos nuevos en catalogo y aliases CLI; no se ejecuta shell |
-| `agents/` | 11 definiciones | Once roles neutrales y propuestas nativas, sin despacho automatico |
-| `skills/` | 198 carpetas directas y 197 archivos `SKILL.md` | Inventario y triage individuales; cuarenta skills activas nuevas, no importacion masiva |
-| `rules/` | 14 reglas y un README | Dieciocho reglas nuevas, seleccionadas por comando/perfil |
+| `commands/` | 13 archivos Markdown | Intenciones separadas en comandos canonicos y aliases compatibles; no se ejecuta shell |
+| `agents/` | 11 definiciones | Roles neutrales ampliados y propuestas nativas, sin despacho automatico |
+| `skills/` | 198 carpetas directas y 197 archivos `SKILL.md` | Inventario y triage individuales; procedimientos nuevos, no importacion masiva |
+| `rules/` | 14 reglas y un README | Reglas neutrales seleccionadas por comando/perfil |
 | `references/` | 24 archivos | Veinticuatro referencias neutrales nuevas, bajo demanda |
 | `task-system/` | 82 archivos recursivos | Nucleo nuevo con tareas, planes, artefactos y sesiones; no replica todas las herramientas |
 | `mcp/` | Un servidor de medios | No |
@@ -23,10 +23,9 @@ de los manifiestos:
 | `plugins/` | `ponytail.ts` | No |
 | `opencode-loop/` | 52 archivos recursivos | No; son estado e historico, no una biblioteca portable |
 
-La fuente activa es `catalog/manifest.json`: 111 recursos (13 comandos,
-11 agentes, 40 skills, 18 reglas, 24 referencias y 5 perfiles).
-Las tres skills iniciales se complementan con 37 procedimientos nuevos
-de ingenieria general. No se certifica equivalencia textual o funcional
+La fuente activa es `resources/manifest.json`, incluido su arreglo `aliases`.
+El inventario historico de `catalog/` no determina el numero de recursos
+actuales. No se certifica equivalencia textual o funcional
 con cada original; se conservan los temas y los contratos neutrales.
 
 El CLI incorpora `catalog`, `workflow`, `plan`, `artifact` y `session`
@@ -44,16 +43,18 @@ habra que incorporar expresamente cada pieza aprobada y su procedencia.
 ```text
 src/core/             Contratos, estado, configuracion y validaciones
 src/discovery/        Evidencia del proyecto y propuestas
-src/adapters/         Proyeccion segun capacidades del anfitrion
-commands/             Intenciones y routers portables, no shell scripts
-agents/               Roles canonicos sin nombres ni permisos de VantaDB
-skills/               Procedimientos reutilizables cargados bajo demanda
-rules/                Reglas generales y criterios de aplicacion
-references/           Material de consulta, no instrucciones siempre activas
-profiles/             Especializaciones optativas de stack, dominio y proyecto
+src/hosts/            Propuestas versionadas segun capacidades del anfitrion
+src/adapters/         Entradas de compatibilidad hacia src/hosts
+resources/commands/   Una intencion por procedimiento, no shell scripts
+resources/agents/     Roles neutrales, no agentes ejecutados automaticamente
+resources/skills/     Procedimientos reutilizables cargados bajo demanda
+resources/rules/      Obligaciones y criterios de aplicacion
+resources/references/ Consulta, no autoridad de seguridad implicita
+resources/profiles/   Especializaciones optativas, complementadas con core
+resources/prompts/    Briefs y contexto, no logica de almacenamiento
 templates/hosts/      Formatos nativos generados desde fuentes canonicas
 policy/               Politicas que el codigo realmente valida
-catalog/              Manifest activo e inventarios de procedencia/triage
+catalog/              Inventarios historicos de procedencia/triage
 docs/                 Documentacion del producto, no artefactos de tareas
 .tasksystem/          Planes, task files, informes, reviews, memoria y estado
 legacy/               Copia local de procedencia, nunca fuente activa implicita
@@ -64,10 +65,17 @@ responsabilidad; skill = procedimiento; regla = obligacion; referencia =
 conocimiento; perfil = especializacion; adaptador = formato y capacidades
 reales del anfitrion.
 
-No conviene duplicar once agentes y todo el catalogo cuatro veces. La fuente
+No conviene duplicar los roles y todo el catalogo por anfitrion. La fuente
 de cada comportamiento debe ser unica; el adaptador solo traduce el formato.
 
 ## Comandos: conservar las trece intenciones
+
+La tabla siguiente conserva el significado de los entrypoints anteriores,
+no afirma que sus nombres sigan siendo la fuente editable. Por ejemplo,
+`pipeline plan/task/run` se resuelve a `plan-work`, `implement-task` y
+`coordinate-plan`; `audit quick/review/full` separa verificacion, revision
+y auditoria. Las correspondencias exactas viven en `resources/manifest.json`.
+Un alias no concede efectos nuevos ni ejecuta automaticamente su propuesta.
 
 Esta tabla define las intenciones de los procedimientos canonicos nuevos.
 Ninguna fila afirma que ya esten activados dentro de un anfitrion.
@@ -108,6 +116,12 @@ esos archivos al inicializar. Ver [puentes nativos](native-hosts.md).
 | `vanta-research` | `researcher` | Investigacion y fuentes verificables |
 | `vanta-review` | `reviewer` | Revision independiente de implementacion y contrato |
 | `vanta-harness` | `harness-maintainer` | Salud y deriva del harness |
+
+Se agregan responsabilidades sin inventar ejecucion o permisos:
+`requirements-analyst` para requisitos y ambiguedades;
+`verification-engineer` para checks y evidencia;
+`integration-engineer` para limites y adaptacion de entornos;
+`release-engineer` para preparacion de entrega, sin permiso implicito de publicar.
 
 La configuracion no debe inventar permisos que el anfitrion no aplica. Un
 rol escrito en Markdown no crea un subagente ni un aislamiento de contexto.
@@ -184,7 +198,7 @@ El nucleo permite el flujo vertical especificar -> planificar -> implementar
 con el anfitrion -> verificar -> revisar -> cerrar -> recuperar contexto.
 La evidencia ejecutada y sus huecos estan en [verificacion](verification.md).
 No se declara equivalencia integral con plugins, sandbox o especialidades
-que siguen archivados, ni certificacion real en los cuatro productos.
+que siguen archivados, ni certificacion real en los cinco productos.
 
 Una pieza solo cambia de pendiente a activa cuando sus referencias y
 permisos son coherentes, no impone un dominio, conserva su procedencia y

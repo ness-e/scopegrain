@@ -16,12 +16,22 @@ src/core/fsx.mjs          Helpers sincronicos de filesystem
 src/core/paths.mjs        Rutas relativas seguras, contencion, anti-symlink
 src/core/config.mjs       Contrato de config.json, answers y colisiones
 src/core/context.mjs      Vincula project root explicito + config cargada
-src/core/policy.mjs       Carga policy/workflow.json (fuente canonica)
+src/core/policy.mjs       Carga las politicas canonicas del runtime instalado
 src/core/tasks.mjs        Documentos de tarea, createTask, getTask, listTasks
 src/core/catalog.mjs      Catalogo activo validado y proyeccion de recursos
+src/core/resource-recovery.mjs Busqueda, diagnostico y restauracion por hash
 src/core/workflows.mjs    Paquetes de procedimiento/contexto, sin ejecucion LLM
 src/core/plans.mjs        Planes DAG y readiness desde tareas actuales
 src/core/artifacts.mjs    Artefactos operativos inmutables por UUID
+src/core/specification-data.mjs Forma y tipos de especificacion/design
+src/core/outcome-data.mjs  Forma del informe vinculado de resultado
+src/core/specifications.mjs Especificaciones estructuradas y design vinculado
+src/core/approvals.mjs    Aprobaciones por contenido, pregunta y respuesta CAS
+src/core/digests.mjs      JSON canonico y proyecciones estaticas
+src/core/methodology-data.mjs Clasificacion pura y referencias de escenarios
+src/core/formal-bindings.mjs Lecturas independientes y digests de relaciones
+src/core/outcomes.mjs     Preparacion de informe vinculado al REVIEW actual
+src/core/methodology.mjs  Gates ACT/ACCEPT y acciones efectivas compartidas
 src/core/sessions.mjs     Operaciones registradas, CAS, presupuesto y resume
 src/core/versioning.mjs   Ignore propio y propuestas externas por categoria
 src/core/evidence.mjs     Validacion de verification/review (attestations)
@@ -29,8 +39,9 @@ src/core/transition.mjs   Transiciones CAS con lock por tarea, checkAction
 src/core/bootstrap.mjs    Plan de init, preflight, apply con rollback
 src/core/doctor.mjs       Chequeo de salud de solo lectura
 src/discovery/inspect.mjs Escaneo acotado de manifiestos
-src/adapters/render.mjs   Fragmentos de integracion por anfitrion
-src/adapters/native.mjs   Puentes nativos y plan de activacion manual
+src/hosts/render.mjs      Fragmentos de integracion por anfitrion
+src/hosts/native.mjs      Propuestas nativas versionadas y activacion manual
+src/adapters/            Entradas compatibles hacia src/hosts
 src/mcp/server.mjs        Servidor MCP stdio de solo lectura
 ```
 
@@ -44,14 +55,16 @@ CLI task/doctor/mcp -> resolveContext -> loadConfig -> operaciones
 
 - Toda ruta de proyecto viene de `--project` o de la configuracion cargada;
   nada se deriva ascendiendo desde la instalacion.
-- `policy/workflow.json` es la unica fuente de estados, transiciones,
-  acciones y reglas de aceptacion; el codigo no duplica esos valores.
+- `policy/workflow.json` define estados, aristas, acciones y aceptacion
+  base. `policy/methodology.json` define el contrato metodologico.
+  Los gates agregan controles; no crean otra maquina de estados.
 - Las plantillas en `templates/` se renderizan con sustitucion de
   placeholders; despues del render se exige que no quede ningun `{{`.
 - Los comandos descubiertos son propuestas (`approved:false`), jamas
   ejecutados por el harness.
-- `catalog/manifest.json` indexa fuentes canonicas; el catalogo generado
-  usa rutas proyectadas, no referencias a templates inexistentes.
+- `resources/manifest.json` indexa las fuentes canonicas y sus aliases.
+  El catalogo generado fija el snapshot del proyecto y hashes; los paquetes
+  no sustituyen silenciosamente sus bytes por los de otra instalacion.
 - Los procedimientos los interpreta el anfitrion. TaskSystem no crea
   clientes LLM ni ejecuta subagentes por tener una definicion de rol.
 - La politica de onboarding propone todos los artefactos dentro de
@@ -82,6 +95,18 @@ CLI task/doctor/mcp -> resolveContext -> loadConfig -> operaciones
   el temporal propios.
 - **Evidencia:** verification y review son attestations declaradas; `ACT`
   las invalida y una verificacion nueva invalida la review previa.
+- **Metodologia:** el clasificador puro no importa almacenamiento ni gates.
+  Los getters validan la forma de registros historicos; los gates resuelven
+  sus referencias actuales sin convertir una perdida ajena en TypeError.
+  La preparacion de un outcome usa el REVIEW real, no hashes del caller.
+- **Consistencia local:** la transicion revalida su candidato bajo lock y
+  comprueba metodologia antes del temporal/rename. `checkAction` y paquetes
+  usan la misma evaluacion de acciones, evitando un `edit` paralelo sin gate.
+  Esto no es una transaccion serializable entre todos los archivos.
+- **Configuracion vinculada:** el contexto conserva la configuracion
+  cargada al resolverlo o iniciar MCP; cambios requieren nueva resolucion
+  o reinicio. Las copias de politicas en el proyecto son referencias,
+  no overrides de las politicas del runtime instalado.
 - **Descubrimiento:** profundidad <=4, <=1000 entradas, manifiestos <=128
   KiB de una lista permitida; sin seguir enlaces; carpetas puntuales
   excluidas (`.git`, `node_modules`, `vendor`, `.venv`, `venv`, `target`,
@@ -108,3 +133,9 @@ CLI task/doctor/mcp -> resolveContext -> loadConfig -> operaciones
   aislamiento universal del harness; no se generan hooks ejecutables.
 - El estado se controla solo para operaciones que pasan por TaskSystem; no
   se interceptan herramientas nativas.
+- Las comprobaciones de contencion rechazan enlaces en los puntos de
+  validacion, pero no constituyen aislamiento del sistema operativo contra
+  sustituciones concurrentes hostiles de ancestros del filesystem.
+- Los digests vinculan registros/payloads, no el worktree ni los bytes de
+  un archivo citado. Identidades, riesgo y resultados son declaraciones.
+  Ver [Organic y SDD](methodology.md) para los contratos y limites.

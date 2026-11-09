@@ -29,7 +29,7 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
    node .\bin\tasksystem.mjs init --project "C:\ruta\mi-proyecto" --answers "C:\ruta\answers.json" --apply
    ```
 
-   - Interactivo: pregunta nombre, idioma, anfitriones, ruta de
+   - Interactivo: pregunta nombre, idioma, anfitriones, metodologia, ruta de
      configuracion, las siete rutas de artefactos y ocho decisiones de
      versionado (incluida la subcategoria reviews); muestra el plan de
      archivos completo y pide `Crear estos archivos? (yes/no)` (defecto:
@@ -49,13 +49,13 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
    | `instructions.md` | `templates/project-instructions.md` |
    | `discovery.json` | Resultado completo de inspect |
    | `task-contract.md` | `templates/task-contract.md` (verbatim) |
-   | `integrations/<host>-mcp.json|.toml` | `src/adapters/render.mjs` |
+   | `integrations/<host>-mcp.json` o `.toml` | `src/hosts/render.mjs` |
    | `catalog.json` | Manifest proyectado con rutas del espacio generado |
    | `commands/`, `agents/`, `skills/`, `rules/`, `references/`, `profiles/` | Fuentes canonicas del catalogo activo |
-   | `policy/workflow.json`, `policy/operation-limits.json` | Politicas canonicas de referencia |
+   | `policy/workflow.json`, `policy/operation-limits.json`, `policy/methodology.json` | Politicas canonicas de referencia, no overrides del runtime |
    | `.gitignore`, `integrations/gitignore-proposal.txt` | Preferencias por categoria; no alteran el ignore de raiz |
    | `integrations/native/` | Puentes nativos y plan de activacion manual |
-   | `AGENTS.md` (raiz) | `templates/entrypoint.md`, si hay host codex/opencode/devin |
+   | `AGENTS.md` (raiz) | `templates/entrypoint.md`, segun anfitriones seleccionados |
    | `CLAUDE.md` (raiz) | `templates/entrypoint.md`, si hay host claude |
 
    Los fragmentos en `integrations/` son propuestas machine-local para
@@ -74,6 +74,15 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
 
 ## Personalizacion
 
+- La metodologia se pregunta despues de los anfitriones y antes de la ruta
+  de configuracion. Para un proyecto interactivo nuevo se propone
+  `organic-sdd`; una seleccion invalida se vuelve a preguntar y cancelar la
+  confirmacion final no aplica archivos.
+- Modos: `manual`, `organic-sdd`, `sdd`. Respuestas/config antiguas sin campo
+  se normalizan a `manual` sin reescribir bytes. No se deben omitir respuestas
+  para degradar un proyecto que ya usa otro modo: la diferencia es conflicto.
+  Ver [Organic y SDD](methodology.md).
+
 - Todos los artefactos operativos se proponen dentro de `.tasksystem/`:
   planes, task files, reports/reviews, research, decisions, memory y state.
   La documentacion destinada a usuarios del producto es un entregable
@@ -88,9 +97,11 @@ CLI; el servidor MCP si requiere las dependencias declaradas en
   retira archivos que Git ya seguia; eso requiere decision del propietario.
 - Config fuera de la ruta por defecto: `--config "ruta/relativa/config.json"`
   en `init` (pregunta interactiva o flag) y en los comandos posteriores.
-- Las rutas guardadas son siempre relativas al proyecto; nunca se almacenan
-  rutas absolutas ni se aceptan destinos reservados (`.git`, `node_modules`,
-  `legacy`, `.opencode`).
+- Las rutas de artefactos son relativas al proyecto; no se aceptan destinos
+  reservados (`.git`, `node_modules`, `legacy`, `.opencode`). Los fragmentos
+  MCP machine-local si pueden contener rutas absolutas de la instalacion y
+  del proyecto. Moverlos requiere revision/rebind explicito, no sustitucion
+  silenciosa ni una promesa de portabilidad de esas rutas.
 - Cambiar respuestas despues de init requiere reconciliacion manual: una
   config existente con respuestas distintas produce error explicito.
 

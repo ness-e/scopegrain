@@ -5,6 +5,19 @@ formato de evidencias segun `policy/workflow.json` y
 `docs/implementation.md`. Los ejemplos son sinteticos: no son resultados de
 ejecucion.
 
+## Compatibilidad y metodologia
+
+Los ejemplos historicos de esta pagina usan tareas V1 en modo `manual`.
+En `organic-sdd` o `sdd`, una creacion sin los metadatos requeridos no
+representa una tarea autorizada. La guia [Organic y SDD](methodology.md)
+describe registros ligeros, especificaciones/design V2, aprobaciones,
+escenarios e informes vinculados.
+
+ACT y ACCEPT conservan las aristas del workflow y agregan los gates del
+modo/registro. Una consulta metodologica permitida no autoriza por si sola
+una transicion ni herramientas nativas. Revocar consentimiento puede quitar
+`edit` de una tarea que ya estaba en ACT.
+
 ## Estados y transiciones
 
 La maquina de estados canonica esta en `policy/workflow.json`:
@@ -102,7 +115,9 @@ declaraciones registradas, no identidad autenticada.
 
 ## Alcance y lecturas
 
-`scope` es una lista de rutas relativas contenidas y seguras (se validan
-como destinos: sin `..`, enlaces ni prefijos reservados). `list` devuelve
+`scope` es una lista de rutas relativas normalizadas. La creacion valida
+destinos y los gates V2 revalidan su contencion actual; un lector historico
+no es una comprobacion continua de permisos o referencias ajenas.
+No se aceptan `..` ni prefijos reservados. `list` devuelve
 `{tasks, malformed}`; los archivos corruptos o con nombre no-UUID se
 reportan, nunca se descartan en silencio.
