@@ -15,6 +15,9 @@ import { err } from '../core/errors.mjs';
 import { buildWorkflowPacket } from '../core/workflows.mjs';
 import { getPlan, nextPlanTasks } from '../core/plans.mjs';
 import { getArtifact } from '../core/artifacts.mjs';
+import { getSpecification } from '../core/specifications.mjs';
+import { getApproval } from '../core/approvals.mjs';
+import { checkMethodology } from '../core/methodology.mjs';
 import { getSession, resumeSession } from '../core/sessions.mjs';
 
 const PROTOCOL_NOTE = 'stdout is reserved for MCP protocol; logs go to stderr';
@@ -227,6 +230,37 @@ export function createMCPTools(ctx, z) {
         annotations: READ_ONLY,
       },
       handler: wrap(async ({ kind, id }) => getArtifact(ctx, kind, id)),
+    },
+    {
+      name: 'tasksystem_specification_get',
+      config: {
+        description: 'Read a structured specification by UUID for the bound project.',
+        inputSchema: { id: z.string().describe('structured specification UUID') },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ id }) => getSpecification(ctx, id)),
+    },
+    {
+      name: 'tasksystem_approval_get',
+      config: {
+        description: 'Read a stored content-bound approval by SHA-256 ID.',
+        inputSchema: { id: z.string().describe('approval SHA-256 ID') },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async ({ id }) => getApproval(ctx, id)),
+    },
+    {
+      name: 'tasksystem_methodology_check',
+      config: {
+        description: 'Check declared methodology gates for ACT or ACCEPT without writing.',
+        inputSchema: {
+          taskId: z.string().describe('task UUID'),
+          to: z.enum(['ACT', 'ACCEPT']).optional().describe('methodology gate to inspect; defaults to ACT'),
+          outcomeEvidenceId: z.string().optional().describe('optional outcome report UUID for an ACCEPT preview'),
+        },
+        annotations: READ_ONLY,
+      },
+      handler: wrap(async (a) => checkMethodology(ctx, a)),
     },
     {
       name: 'tasksystem_session_get',

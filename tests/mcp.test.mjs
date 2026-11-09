@@ -17,6 +17,8 @@ const EXPECTED_TOOLS = [
   'tasksystem_plan_next', 'tasksystem_artifact_get',
   'tasksystem_session_get', 'tasksystem_session_resume',
   'tasksystem_resource_search', 'tasksystem_resource_diagnose',
+  'tasksystem_specification_get', 'tasksystem_approval_get',
+  'tasksystem_methodology_check',
 ];
 
 async function depsAvailable() {
@@ -36,7 +38,7 @@ test('importing server.mjs does not start a server or require deps', async () =>
   assert.equal(typeof mod.createMCPTools, 'function');
 });
 
-test('descriptors are exactly 13 read-only tools bound to ctx', async (t) => {
+test('descriptors are exactly 18 read-only tools bound to ctx', async (t) => {
   if (!(await depsAvailable())) {
     t.skip('optional MCP dependencies are not installed');
     return;
@@ -47,6 +49,8 @@ test('descriptors are exactly 13 read-only tools bound to ctx', async (t) => {
   const { dir, ctx } = bootstrappedCtx();
   try {
     const tools = createMCPTools(ctx, z);
+    assert.equal(tools.length, 18);
+    assert.equal(new Set(tools.map((x) => x.name)).size, 18);
     assert.deepEqual(tools.map((x) => x.name).sort(), [...EXPECTED_TOOLS].sort());
     for (const tool of tools) {
       assert.equal(tool.config.annotations.readOnlyHint, true);
@@ -79,26 +83,34 @@ test('in-memory transport round-trip lists and calls tools', async (t) => {
   const { Client } = await import('@modelcontextprotocol/sdk/client/index.js');
   const { createMCPServer } = await import('../src/mcp/server.mjs');
   const dir = makeTempDir('mcp-transport');
+  let server;
+  let client;
   try {
     writeJson(dir, '.tasksystem/config.json',
       createConfig(dir, VALID_ANSWERS, {}));
-    const { server } = await createMCPServer({ project: dir });
+    ({ server } = await createMCPServer({ project: dir }));
     const [clientT, serverT] = InMemoryTransport.createLinkedPair();
-    const client = new Client({ name: 'test', version: '0.0.0' });
+    client = new Client({ name: 'test', version: '0.0.0' });
     await Promise.all([
       server.connect(serverT), client.connect(clientT),
     ]);
     const { tools } = await client.listTools();
-    assert.ok(tools.length >= 13);
+    assert.equal(tools.length, 18);
+    assert.equal(new Set(tools.map((x) => x.name)).size, 18);
+    assert.deepEqual(tools.map((x) => x.name).sort(), [...EXPECTED_TOOLS].sort());
     assert.ok(tools.every((x) => x.annotations?.readOnlyHint === true));
     const res = await client.callTool({
       name: 'tasksystem_check_action',
       arguments: { taskId: '00000000-0000-4000-8000-000000000000', action: 'read' },
     });
     assert.equal(res.isError, true); // task does not exist -> isError, not crash
-    await client.close();
-    await server.close();
-  } finally { cleanup(dir); }
+  } finally {
+    try { if (client) await client.close(); }
+    finally {
+      try { if (server) await server.close(); }
+      finally { cleanup(dir); }
+    }
+  }
 });
 
 test('createMCPServer registers all tools without connecting', async (t) => {
@@ -108,11 +120,16 @@ test('createMCPServer registers all tools without connecting', async (t) => {
   }
   const { createMCPServer } = await import('../src/mcp/server.mjs');
   const dir = makeTempDir('mcp-server');
+  let server;
   try {
     writeJson(dir, '.tasksystem/config.json',
       createConfig(dir, VALID_ANSWERS, {}));
-    const { server, ctx } = await createMCPServer({ project: dir });
+    const created = await createMCPServer({ project: dir });
+    server = created.server;
     assert.ok(server);
-    assert.equal(ctx.projectRoot, dir);
-  } finally { cleanup(dir); }
+    assert.equal(created.ctx.projectRoot, dir);
+  } finally {
+    try { if (server) await server.close(); }
+    finally { cleanup(dir); }
+  }
 });
