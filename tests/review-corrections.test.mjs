@@ -236,22 +236,63 @@ test('gitignore emits literal pattern for bracketed path segment', () => {
   assert.ok(gi.content.includes('/reports\\[private\\]/'));
 });
 
-test('catalog check exits nonzero on corrupt install; flags rejected', async () => {
-  // CLI: catalog check on a broken manifest -> exit 1 + structured stderr.
-  // (Real catalog is healthy; inject via unit-level checkCatalog instead.)
+test('checkCatalog reports corrupt manifest; CLI rejects unsupported flags', async () => {
   const { checkCatalog } = await import('../src/core/catalog.mjs');
   const dir = makeTempDir('badcat');
   try {
-    fs.mkdirSync(`${dir}/catalog`, { recursive: true });
-    fs.writeFileSync(`${dir}/catalog/manifest.json`, 'null');
+    fs.mkdirSync(`${dir}/resources`, { recursive: true });
+    fs.writeFileSync(`${dir}/resources/manifest.json`, 'null');
     const report = checkCatalog({ installRoot: dir });
     assert.equal(report.ok, false);
     assert.equal(report.issues[0].code, 'CATALOG_MALFORMED');
+    assert.equal(report.issues[0].message, 'manifest must be an object');
   } finally { cleanup(dir); }
   const io = fakeIO();
-  assert.equal(await run(['catalog', 'list', '--project', '.'], io), 1);
+  assert.equal(await run(
+    ['catalog', 'list', '--title', 'not-valid-for-catalog'], io), 1);
   const errOut = JSON.parse(io.out.stderr[0]);
   assert.equal(errOut.error.code, 'INVALID_ARGS');
+  assert.equal(errOut.error.message, '--title is not valid for catalog list');
+});
+
+test('catalog list --project uses workspace snapshot and does not write', async () => {
+  const dir = makeTempDir('rc-catalog');
+  const empty = makeTempDir('rc-no-config');
+  try {
+    applyPlan(dir, prepareInit({ projectRoot: dir, answers: DEFAULT_ANSWERS }).files);
+    const configFile = path.join(dir, '.tasksystem', 'config.json');
+    const catalogFile = path.join(dir, '.tasksystem', 'catalog.json');
+    const catalog = JSON.parse(fs.readFileSync(catalogFile, 'utf8'));
+    const command = catalog.entries.find((e) =>
+      e.kind === 'command' && e.id === 'plan-work');
+    assert.ok(command);
+    const description = 'Distinctive workspace fixture description';
+    assert.notEqual(command.description, description);
+    command.description = description;
+    fs.writeFileSync(catalogFile, JSON.stringify(catalog, null, 2) + '\n');
+    const configBefore = fs.readFileSync(configFile);
+    const catalogBefore = fs.readFileSync(catalogFile);
+    const entriesBefore = fs.readdirSync(dir, { recursive: true }).sort();
+
+    const io = fakeIO();
+    assert.equal(await run(['catalog', 'list', 'command', '--project', dir], io), 0);
+    const result = JSON.parse(io.out.stdout[0]);
+    assert.equal(result.source, 'workspace-snapshot');
+    assert.equal(result.entries.find((e) => e.id === 'plan-work').description,
+      description);
+    assert.deepEqual(fs.readFileSync(configFile), configBefore);
+    assert.deepEqual(fs.readFileSync(catalogFile), catalogBefore);
+    assert.deepEqual(fs.readdirSync(dir, { recursive: true }).sort(), entriesBefore);
+
+    const emptyBefore = fs.readdirSync(empty, { recursive: true }).sort();
+    const missing = fakeIO();
+    assert.equal(await run(['catalog', 'list', 'command', '--project', empty], missing), 1);
+    assert.equal(JSON.parse(missing.out.stderr[0]).error.code, 'CONFIG_NOT_FOUND');
+    assert.deepEqual(fs.readdirSync(empty, { recursive: true }).sort(), emptyBefore);
+  } finally {
+    cleanup(dir);
+    cleanup(empty);
+  }
 });
 
 test('configDirPrefix handles arbitrary basenames and root config', () => {
