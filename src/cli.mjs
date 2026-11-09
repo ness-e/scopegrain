@@ -9,7 +9,7 @@ import { resolveProjectRoot } from './core/paths.mjs';
 import { prepareInit, applyPlan, preflightPlan } from './core/bootstrap.mjs';
 import { runDoctor } from './core/doctor.mjs';
 import { inspectProject } from './discovery/inspect.mjs';
-import { createTask, getTask, listTasks } from './core/tasks.mjs';
+import { createTask, getTask, listTasks, prepareTask } from './core/tasks.mjs';
 import { transitionTask, checkAction } from './core/transition.mjs';
 import { readFileLimited } from './core/fsx.mjs';
 import fs from 'node:fs';
@@ -23,6 +23,15 @@ import {
 import {
   getArtifact, listArtifacts, prepareArtifact,
 } from './core/artifacts.mjs';
+import {
+  getSpecification, prepareDesign, prepareSpecification,
+} from './core/specifications.mjs';
+import { prepareOutcomeEvidence } from './core/outcomes.mjs';
+import {
+  answerApproval, describeApprovalTarget, getApproval, prepareApproval,
+  prepareApprovalAnswer,
+} from './core/approvals.mjs';
+import { checkMethodology } from './core/methodology.mjs';
 import {
   ensureSessionsDir, getSession, prepareSession, prepareSessionRecord,
   recordSession, resumeSession,
@@ -42,7 +51,8 @@ const VALUE_FLAGS = new Set([
   '--project', '--config', '--answers', '--evidence',
   '--title', '--contract', '--author', '--scope', '--revision',
   '--input', '--task', '--mode', '--host', '--profile', '--limit',
-  '--query', '--interaction',
+  '--query', '--interaction', '--spec', '--design', '--plan', '--to',
+  '--outcome-evidence',
 ]);
 const BOOL_FLAGS = new Set(['--apply', '--help']);
 const REJECTED_FLAGS = new Set(['--yes', '--force']);
@@ -66,9 +76,10 @@ const COMMANDS = {
     usage: 'mcp --project PATH [--config REL]',
   },
   'task create': {
-    flags: ['--project', '--config', '--title', '--contract', '--author', '--scope'],
+    flags: ['--project', '--config', '--title', '--contract', '--author', '--scope',
+      '--spec', '--design', '--plan', '--input', '--apply'],
     pos: 0,
-    usage: 'task create --project PATH --title T --contract C --author A [--scope a,b]',
+    usage: 'task create --project PATH (--input FILE [--apply] | --title T --contract C --author A [--scope a,b] [--spec UUID --design UUID] [--plan KEY])',
   },
   'task list': {
     flags: ['--project', '--config'], pos: 0,
@@ -85,6 +96,42 @@ const COMMANDS = {
   'task check-action': {
     flags: ['--project', '--config'], pos: 2,
     usage: 'task check-action --project PATH ID ACTION',
+  },
+  'specification create': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 0,
+    usage: 'specification create --project PATH --input FILE [--apply]',
+  },
+  'specification show': {
+    flags: ['--project', '--config'], pos: 1,
+    usage: 'specification show --project PATH UUID',
+  },
+  'design create': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 0,
+    usage: 'design create --project PATH --input FILE [--apply]',
+  },
+  'outcome create': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 0,
+    usage: 'outcome create --project PATH --input FILE [--apply]',
+  },
+  'approval target': {
+    flags: ['--project', '--config', '--input'], pos: 0,
+    usage: 'approval target --project PATH --input FILE',
+  },
+  'approval create': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 0,
+    usage: 'approval create --project PATH --input FILE [--apply]',
+  },
+  'approval show': {
+    flags: ['--project', '--config'], pos: 1,
+    usage: 'approval show --project PATH DIGEST',
+  },
+  'approval answer': {
+    flags: ['--project', '--config', '--input', '--apply'], pos: 0,
+    usage: 'approval answer --project PATH --input FILE [--apply]',
+  },
+  'methodology check': {
+    flags: ['--project', '--config', '--to', '--outcome-evidence'], pos: 1,
+    usage: 'methodology check --project PATH UUID [--to ACT|ACCEPT] [--outcome-evidence UUID]',
   },
   'catalog list': {
     flags: ['--project', '--config'], pos: -1,
@@ -181,6 +228,8 @@ function helpResult() {
     notes: [
       '--yes and --force are not supported; confirmation is always explicit',
       'results are JSON on stdout; errors are JSON on stderr with exit code 1',
+      'JSON creation previews do not reserve IDs; use IDs returned by --apply',
+      'Methodology checks and stored approvals are not native tool permissions',
     ],
   };
 }
@@ -361,6 +410,21 @@ async function cmdTask(sub, positional, flags, io) {
     config: flags['--config'],
   });
   if (sub === 'create') {
+    const legacyFlags = ['--title', '--contract', '--author', '--scope',
+      '--spec', '--design', '--plan'];
+    if (Object.hasOwn(flags, '--input')) {
+      if (legacyFlags.some((name) => Object.hasOwn(flags, name))) {
+        throw err('INVALID_ARGS',
+          '--input is mutually exclusive with legacy task create flags');
+      }
+      const input = readInputFile(requireFlag(flags, '--input'), 'task input');
+      const prepared = prepareTask(ctx, input);
+      return finishCreation(ctx, 'task', prepared.task, prepared.file, flags);
+    }
+    if (flags['--apply']) {
+      throw err('INVALID_ARGS',
+        '--apply requires --input for task create; legacy flags create directly');
+    }
     const scope = flags['--scope']
       ? flags['--scope'].split(',').map((s) => s.trim()).filter(Boolean)
       : [];
@@ -369,6 +433,9 @@ async function cmdTask(sub, positional, flags, io) {
       contract: requireFlag(flags, '--contract'),
       authorContext: requireFlag(flags, '--author'),
       scope,
+      ...(Object.hasOwn(flags, '--spec') ? { specId: flags['--spec'] } : {}),
+      ...(Object.hasOwn(flags, '--design') ? { designId: flags['--design'] } : {}),
+      ...(Object.hasOwn(flags, '--plan') ? { planKey: flags['--plan'] } : {}),
     });
   }
   if (sub === 'list') return listTasks(ctx);
@@ -566,6 +633,76 @@ function cmdArtifact(sub, positional, flags) {
   throw err('INVALID_ARGS', `unknown artifact subcommand '${sub}'`);
 }
 
+// Create-only records use exclusive bootstrap writes. Mutable approval
+// answers deliberately do NOT go through this helper.
+function finishCreation(ctx, key, record, file, flags) {
+  const planned = preflightPlan(ctx.projectRoot, [file]);
+  if (!flags['--apply']) {
+    return {
+      mode: 'dry-run', applied: false, [key]: record,
+      files: planned.map((f) => ({ path: f.rel, action: f.action })),
+    };
+  }
+  const result = applyPlan(ctx.projectRoot, planned);
+  return { mode: 'applied', applied: true, [key]: record, ...result };
+}
+
+function cmdTypedArtifact(family, sub, positional, flags) {
+  const ctx = resolveContext({
+    project: requireFlag(flags, '--project'), config: flags['--config'],
+  });
+  if (family === 'specification' && sub === 'show') {
+    return getSpecification(ctx, positional[0]);
+  }
+  const input = readInputFile(requireFlag(flags, '--input'), `${family} input`);
+  const prepare = {
+    specification: prepareSpecification,
+    design: prepareDesign,
+    outcome: prepareOutcomeEvidence,
+  }[family];
+  const prepared = prepare(ctx, input);
+  return finishCreation(ctx, 'artifact', prepared.artifact, prepared.file, flags);
+}
+
+function cmdApproval(sub, positional, flags) {
+  const ctx = resolveContext({
+    project: requireFlag(flags, '--project'), config: flags['--config'],
+  });
+  if (sub === 'show') return getApproval(ctx, positional[0]);
+  const input = readInputFile(requireFlag(flags, '--input'), 'approval input');
+  if (sub === 'target') return describeApprovalTarget(ctx, input);
+  if (sub === 'create') {
+    const prepared = prepareApproval(ctx, input);
+    return finishCreation(ctx, 'approval', prepared.approval, prepared.file, flags);
+  }
+  if (sub === 'answer') {
+    if (flags['--apply']) {
+      // Core revalidates CAS against current content under its own lock.
+      const approval = answerApproval(ctx, input);
+      return { mode: 'applied', applied: true, approval };
+    }
+    const { previous, next, file } = prepareApprovalAnswer(ctx, input);
+    return {
+      mode: 'dry-run', applied: false, approval: next,
+      previousRevision: previous.revision,
+      files: [{ path: file.rel, action: 'update' }],
+    };
+  }
+  throw err('INVALID_ARGS', `unknown approval subcommand '${sub}'`);
+}
+
+function cmdMethodology(positional, flags) {
+  const ctx = resolveContext({
+    project: requireFlag(flags, '--project'), config: flags['--config'],
+  });
+  return checkMethodology(ctx, {
+    taskId: positional[0],
+    ...(Object.hasOwn(flags, '--to') ? { to: flags['--to'] } : {}),
+    ...(Object.hasOwn(flags, '--outcome-evidence')
+      ? { outcomeEvidenceId: flags['--outcome-evidence'] } : {}),
+  });
+}
+
 function cmdSession(sub, positional, flags) {
   const ctx = resolveContext({
     project: requireFlag(flags, '--project'),
@@ -631,7 +768,8 @@ export async function run(argv, io) {
       io.stdout(JSON.stringify(helpResult(), null, 2));
       return 0;
     }
-    const GROUPED = new Set(['task', 'catalog', 'plan', 'artifact', 'session', 'resource']);
+    const GROUPED = new Set(['task', 'catalog', 'plan', 'artifact', 'session', 'resource',
+      'specification', 'design', 'outcome', 'approval', 'methodology']);
     let cmdKey;
     let spec;
     let aliasCommand = null;
@@ -707,6 +845,12 @@ export async function run(argv, io) {
       result = cmdPlan(cmdKey.slice(5), rest, flags);
     } else if (cmdKey.startsWith('artifact ')) {
       result = cmdArtifact(cmdKey.slice(9), rest, flags);
+    } else if (['specification', 'design', 'outcome'].includes(positional[0])) {
+      result = cmdTypedArtifact(positional[0], positional[1], rest, flags);
+    } else if (cmdKey.startsWith('approval ')) {
+      result = cmdApproval(cmdKey.slice(9), rest, flags);
+    } else if (cmdKey === 'methodology check') {
+      result = cmdMethodology(rest, flags);
     } else {
       result = cmdSession(cmdKey.slice(8), rest, flags);
     }
